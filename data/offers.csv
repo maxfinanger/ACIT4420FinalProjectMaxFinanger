@@ -1,0 +1,4 @@
+offer_id,company,destination,travel_date,departure_time,arrival_time,price,transfers,luggage_kg,changeable,refundable,seats_available,rating
+OF-0001,SolRuta,Malaga,2026-07-12,08:00,14:30,32.50,1,15,no,no,12,3.9
+OF-0002,Camino Express,Malaga,2026-07-12,09:30,14:00,48.00,0,20,yes,no,8,4.4
+OF-0003,CostaLink,Malaga,2026-07-13,07:45,13:50,41.00,0,20,yes,yes,5,4.1
