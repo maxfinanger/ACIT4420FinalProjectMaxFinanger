@@ -1,38 +1,54 @@
-# 🚌 BusBidder Spain
+# BusBidder Spain
 
-A modular Python application that **filters** and **ranks** competing bus offers
-according to an individual traveller's requirements and preferences.
-Final project for **ACIT4420 – Problem-solving with scripting (OsloMet, 2026)**.
+Final project for ACIT4420 Problem-solving with scripting (OsloMet, 2026).
 
-> **Central question:** How can a Python application filter and rank competing bus
-> offers according to the requirements and preferences of an individual traveller?
+BusBidder Spain is a Python application that takes a traveller's request, throws
+out the bus offers that break their hard requirements, and then ranks what is
+left with a weighted scoring model. The aim is that the traveller can see *why*
+an offer ranks first, and not just that it does.
+
+The question I'm trying to answer in this project:
+
+> How can a Python application filter and rank competing bus offers according to
+> the requirements and preferences of an individual traveller?
+
+**Current status:** Phase 0 (skeleton) is finished. Everything after that is still
+to do, see the roadmap in section 5. This README will be updated as I go.
 
 ---
 
-## 1. Quick start
+## 1. Setup and how to run
 
 | Item | Value |
 |---|---|
-| Python version | 3.10+ (tested on 3.12) |
-| Libraries | Standard library only (+ `pytest` for tests) |
+| Python version | 3.10 or newer (I develop on 3.12) |
+| Libraries | Standard library only, plus `pytest` for the tests |
 | Entry point | `main.py` |
+| Input data | `data/` (CSV files) and `config/` (JSON) |
 
 ```bash
-# virtual environment
+# create and activate a virtual environment
 python -m venv .venv
-source .venv/bin/activate   
+source .venv/bin/activate        # on Windows: .venv\Scripts\activate
 
+# install dependencies
 pip install -r requirements.txt
 
-# run the application
+# run the application (from the project root)
 python main.py
 
 # run the tests
 python -m pytest -v
 ```
 
-Right now `main.py` only loads the sample data and prints a summary.
-That is intentional: **Phase 0 = a working skeleton.**
+Both commands need to be run from the project root, because the data and config
+paths are relative.
+
+At the moment `main.py` only loads the companies, destinations and profiles and
+prints a short summary. That is on purpose, the first step was just to get a
+working skeleton before adding logic.
+
+Logs are written to `logs/busbidder.log` when the program runs.
 
 ---
 
@@ -44,36 +60,38 @@ busbidder/
 ├── README.md
 ├── requirements.txt
 ├── config/
-│   └── profiles.json        # traveller profiles -> ranking weights
+│   └── profiles.json        # traveller profiles and their ranking weights
 ├── data/
-│   ├── companies.csv        # 5 companies
-│   ├── destinations.csv     # 15 destinations
-│   ├── offers.csv           # sample offers (Only 3 rows atm)
+│   ├── companies.csv        # the 5 companies
+│   ├── destinations.csv     # the 15 destinations
+│   ├── offers.csv           # sample offers (only 3 rows atm)
 │   └── bookings.json        # created at runtime (git-ignored)
 ├── busbidder/               # the application package
 │   ├── models.py            # dataclasses: Company, Offer, TravelRequest, Booking
 │   ├── exceptions.py        # custom exception hierarchy
 │   ├── log_setup.py         # logging to logs/busbidder.log
-│   ├── loader.py            # file input + type conversion        (Task 2)
-│   ├── validation.py        # record validation + regex           (Task 2)
-│   ├── filtering.py         # hard-constraint filtering           (Task 3)
-│   ├── ranking.py           # weighted scoring                    (Section 5)
-│   ├── explain.py           # "why is this ranked first?"         (Section 6)
-│   ├── booking.py           # simulated bookings                  (Section 6)
+│   ├── loader.py            # file input and type conversion       (Task 2)
+│   ├── validation.py        # record validation and regex          (Task 2)
+│   ├── filtering.py         # hard-constraint filtering            (Task 3)
+│   ├── ranking.py           # weighted scoring                     (Section 5 in spec)
+│   ├── explain.py           # "why is this ranked first?"          (Section 6 in spec)
+│   ├── booking.py           # simulated bookings                   (Section 6 in spec)
 │   └── cli.py               # command-line interface
 ├── tests/
 │   └── test_basics.py
 ├── logs/
-└── docs/                    # diagrams, screenshots, notes for the report
+└── docs/                    # diagrams, screenshots and notes for the report
 ```
 
-### Intended flow of information
+---
+
+## 3. How the program is meant to work
 
 ```
  files (CSV/JSON)
       │
       ▼
-  loader.py ──► validation.py ──► valid Offers  (invalid → logged, rejected/set aside)
+  loader.py ──► validation.py ──► valid Offers  (invalid ones are logged and rejected/set aside)
                                       │
  TravelRequest (from cli.py) ────────►│
                                       ▼
@@ -83,128 +101,156 @@ busbidder/
                                ranking.py     (SOFT preferences + weights)
                                       │
                                       ▼
-                               explain.py ──► cli.py shows ranking + explanation
+                               explain.py ──► cli.py shows the ranking and an explanation
                                       │
                                       ▼
                                booking.py ──► bookings.json + confirmation
 ```
 
-Turn this into a proper diagram for the report (draw.io, Mermaid or PowerPoint).
+This is the rough version. I will redraw it properly (draw.io or Mermaid) in
+Phase 1 and put it in `docs/` for the report.
+
+The main idea is the split between hard constraints and soft preferences.
+Hard constraints (for example destination, budget and travel window) remove an
+offer completely before ranking. Soft preferences (for example preferred
+departure time) only affect the score. Which condition goes where is a design
+decision I still have to make and justify, see Phase 4.
 
 ---
 
-## 3. Roadmap – step by step plan
+## 4. Testing
 
-This is the plan, to show incremental progress in the git history, and to make sure that the program fits the specifications
+Tests are in `tests/` and run with `python -m pytest -v`.
 
-### [x] Phase 0 – Skeleton (done)
+Right now there are 6 tests, which cover loading the companies and destinations,
+the missing-file error, weight validation and the booking reference pattern.
+
+As each phase is finished I will add tests for normal input, invalid input,
+missing data and boundary cases, as the spec requires. Hand-calculated expected
+scores will be used for the ranking tests so I can check the maths independently
+of my own code.
+
+---
+
+## 5. Roadmap
+
+This is my plan. I'm using it to work in small steps, to show progress in the
+git history, and to check along the way that the program fits the specification.
+I commit after every phase.
+
+### [x] Phase 0: Skeleton (done)
 - [x] Folder structure and modules created
 - [x] Sample data for companies, destinations and offers
-- [x] Custom exceptions, logging set-up, dataclass models
+- [x] Custom exceptions, logging setup, dataclass models
 - [x] `main.py` runs, 6 starter tests pass
 
-### [ ] Phase 1 – Understand and design (Task 1)
-*Goal: decide what the program is before coding more.*
-- [ ] Write down the requirements in your own words (`docs/requirements.md`)
-- [ ] Decide which concepts need **classes** and which are just functions
-- [ ] Decide where you will use **inheritance / composition** (and why)
-- [ ] Choose your **metaprogramming technique** (required) – options:
-      decorator for logging/timing, a **registry** of scoring criteria,
-      a descriptor for validated fields, dynamic discovery of company modules
-- [ ] Draw the first architecture diagram → `docs/architecture.png`
-- [ ] Start a `docs/decisions.md` log: *decision – alternatives – reason*
-      (this becomes raw material for the report)
+### [ ] Phase 1: Understand and design (Task 1)
+Goal: decide what the program is before writing more code.
+- [ ] Write the requirements in my own words (`docs/requirements.md`)
+- [ ] Decide which concepts need classes and which can just be functions
+- [ ] Decide where to use inheritance or composition, and why
+- [ ] Choose the metaprogramming technique (required). Options I'm considering:
+      a decorator for logging/timing, a registry of scoring criteria, a
+      descriptor for validated fields, or dynamic discovery of company modules
+- [ ] Draw the first architecture diagram, saved as `docs/architecture.png`
+- [ ] Start `docs/decisions.md` with decision, alternatives and reason
+      (this will be raw material for the report)
 
-### [ ] Phase 2 – Dataset (Task 2)
-*Goal: a realistic dataset of at least 5 companies × 15 destinations.*
+### [ ] Phase 2: Dataset (Task 2)
+Goal: a realistic dataset covering 5 companies and 15 destinations.
 - [ ] Decide how each company differs (routes, prices, times, fare rules)
-- [ ] Generate/write `offers.csv` with ≥ 75 company–destination combinations
-      (several departure times / fare types per combination is better)
-- [ ] Make it reproducible: if you generate data with a script, use a fixed random seed
-- [ ] Deliberately create a **separate `offers_invalid.csv`** with bad rows
-      (negative price, unknown destination, arrival before departure,
-      rating outside 0–5, zero seats, bad date, missing field) – for testing
+- [ ] Write or generate `offers.csv` with at least 75 company-destination
+      combinations, ideally with several departure times or fare types each
+- [ ] Keep it reproducible: if I generate the data with a script, use a fixed random seed
+- [ ] Make a separate `offers_invalid.csv` with bad rows for testing (negative
+      price, unknown destination, arrival before departure, rating outside 0-5,
+      zero seats, bad date, missing field)
 
-### [ ] Phase 3 – Load and validate (Task 2)
-- [ ] Implement `load_offers()` in `loader.py` (type conversion: str → date, time, float, bool)
+### [ ] Phase 3: Load and validate (Task 2)
+- [ ] Implement `load_offers()` in `loader.py` (str to date, time, float, bool)
 - [ ] Implement `validate_offer()` in `validation.py`
-- [ ] Raise custom exceptions (`ValidationError`, `DataFileError`)
-- [ ] Use **regex** where genuinely useful (booking reference – already started – and offer IDs like `OF-\d{4}`)
-- [ ] Decide and document: are invalid records **rejected, corrected, or set aside**?
+- [ ] Raise the custom exceptions (`ValidationError`, `DataFileError`)
+- [ ] Use regex where it fits (booking reference, which is already started, and offer IDs like `OF-\d{4}`)
+- [ ] Decide and document whether invalid records are rejected, corrected or set aside
 - [ ] Log every rejected record with the reason
-- [ ] Handle overnight journeys in `Offer.duration_minutes` (NocheVia!)
+- [ ] Handle overnight journeys in `Offer.duration_minutes` (needed for NocheVia)
 - [ ] Tests: normal, invalid, missing file, missing field, boundary values
 
-### [ ] Phase 4 – Hard constraints (Task 3)
-- [ ] Decide which conditions are **hard** (must hold) vs **soft** (preference)
-- [ ] Implement `filter_offers()` – destination, travel window, budget, seats,
-      max transfers, mandatory flexibility
-- [ ] Make the hard/soft split **visible to the user** (e.g. show "removed: 4 over budget")
-- [ ] Handle "zero offers survive" gracefully
-- [ ] Tests incl. boundaries (price exactly at budget, date exactly on window edge)
+### [ ] Phase 4: Hard constraints (Task 3)
+- [ ] Decide which conditions are hard (must hold) and which are soft (preference)
+- [ ] Implement `filter_offers()` for destination, travel window, budget, seats,
+      max transfers and mandatory flexibility
+- [ ] Make the hard/soft split visible to the user (e.g. "removed: 4 over budget")
+- [ ] Handle the case where no offers survive
+- [ ] Tests including boundaries (price exactly at budget, date exactly on the window edge)
 
-### [ ] Phase 5 – Weighted ranking (Section 5)
-- [ ] Implement normalisation to 0–100 for each criterion
-  - price & duration: **lower is better** (invert)
-  - departure convenience: based on distance from preferred time
+### [ ] Phase 5: Weighted ranking (Section 5 in spec)
+- [ ] Normalise each criterion to a 0-100 scale
+  - price and duration: lower is better, so invert
+  - departure convenience: based on distance from the preferred time
   - flexibility: categorical (e.g. none = 0, changeable = 60, changeable + refundable = 100)
-- [ ] Decide handling of: **ties**, **missing values**, **extreme values / outliers**,
-      and the case where all offers have the *same* value (division by zero!)
-- [ ] Validate weights sum to 1.0 (stub exists) and are not negative
-- [ ] Optionally add criteria (transfers, rating, emissions)
-- [ ] Return per-criterion scores *and* total score for each offer
-- [ ] Tests: hand-calculated expected scores on a tiny dataset
+- [ ] Decide how to handle ties, missing values, extreme values, and the case
+      where all offers have the same value (division by zero)
+- [ ] Validate that weights sum to 1.0 (stub exists) and are not negative
+- [ ] Maybe add extra criteria (transfers, rating, emissions)
+- [ ] Return the score per criterion and the total score for every offer
+- [ ] Tests with hand-calculated expected scores on a tiny dataset
 
-### [ ] Phase 6 – Explanation and traveller profiles (Section 6)
-- [ ] Implement `explain_top_offer()` – generated from the data
-      (e.g. "direct route, departs 40 min from preferred time, flexible fare; drawback: €7 above cheapest")
-- [ ] Never say "objectively best" – say best *under these constraints and weights*
-- [ ] Run **≥ 3 profiles** on the same request (budget / business / flexible tourist) and
-      save the outputs to `docs/profile_comparison.md`
+### [ ] Phase 6: Explanation and traveller profiles (Section 6 in spec)
+- [ ] Implement `explain_top_offer()`, generated from the data
+      (e.g. "direct route, departs 40 min from preferred time, flexible fare;
+      drawback: EUR 7 above the cheapest")
+- [ ] Never call the result "objectively best". It is best under the chosen
+      constraints and weights
+- [ ] Run at least 3 profiles on the same request (budget, business, flexible
+      tourist) and save the output to `docs/profile_comparison.md`
 
-### [ ] Phase 7 – Booking (Section 6)
-- [ ] Select an offer from the ranking
-- [ ] Check seats still available
-- [ ] Generate unique booking reference (matches your regex)
-- [ ] Reduce capacity **consistently** (in memory and in saved data)
-- [ ] Save booking incl. fare conditions → `data/bookings.json`
-- [ ] Clear confirmation message; simulated payment status only (no real card data!)
+### [ ] Phase 7: Booking (Section 6 in spec)
+- [ ] Let the user select an offer from the ranking
+- [ ] Check that seats are still available
+- [ ] Generate a unique booking reference that matches the regex
+- [ ] Reduce capacity consistently (in memory and in the saved data)
+- [ ] Save the booking with its fare conditions to `data/bookings.json`
+- [ ] Clear confirmation message, simulated payment status only (no real card data)
 - [ ] Tests: last seat, sold out, double booking
 
-### [ ] Phase 8 – Interface polish
-- [ ] Interactive CLI menu: enter request → see filtered/ranked offers → book
+### [ ] Phase 8: Interface polish
+- [ ] Interactive CLI menu: enter request, see filtered and ranked offers, book
 - [ ] Input validation with helpful error messages
-- [ ] (Optional) extensions: cancellation/refund, vouchers, return trips, GUI/web
+- [ ] Optional extensions if there is time: cancellation/refund, vouchers, return trips, GUI/web
 
-### [ ] Phase 9 – Evaluation (20% of grade – don't leave this for last!)
-- [ ] Run experiments: change weights, see how rankings change
-- [ ] Test sensitivity: does one criterion dominate? (e.g. wide price range)
-- [ ] Look for **unfair or unreasonable outcomes** (e.g. overnight buses penalised by "convenience")
-- [ ] Record limitations and what you would improve
-- [ ] Save screenshots / tables / log excerpts to `docs/`
+### [ ] Phase 9: Evaluation (20% of the grade, so not something to leave for last)
+- [ ] Run experiments where I change the weights and see how the ranking changes
+- [ ] Check sensitivity: does one criterion dominate (e.g. when the price range is wide)?
+- [ ] Look for unfair or unreasonable outcomes (e.g. overnight buses being
+      penalised by the departure convenience criterion)
+- [ ] Write down limitations and what I would improve
+- [ ] Save screenshots, tables and log excerpts to `docs/`
 
-### [ ] Phase 10 – Report and submission
-- [ ] Write the report (PDF) – see checklist below
-- [ ] Final README check: Python version, libraries, exact run/test commands
-- [ ] Make sure a fresh clone runs: `pip install -r requirements.txt` → `python main.py` → `pytest`
-- [ ] Include example outputs needed to reproduce report findings
-- [ ] Submit PDF + code (zip or GitHub link)
+### [ ] Phase 10: Report and submission
+- [ ] Write the report (PDF), see the checklist in section 6
+- [ ] Final README check: Python version, libraries, exact run and test commands
+- [ ] Check that a fresh clone works: `pip install -r requirements.txt`, then `python main.py`, then `pytest`
+- [ ] Include the example outputs needed to reproduce the report findings
+- [ ] Submit the PDF and the code (zip or GitHub link)
 
 ---
 
-## 4. Report checklist
+## 6. Report plan
 
-The **report is the main assessed deliverable**. Keep source code out of it.
+The report is the main assessed part, so I'm collecting material for it as I go
+instead of writing everything at the end. Source code stays out of the report
+as far as possible.
 
 | Required content | Where it comes from |
 |---|---|
 | Flowchart / architecture diagram | Phase 1 |
-| Dataset description and validation | Phases 2–3 |
-| ≥ 3 traveller-profile comparisons | Phase 6 |
+| Dataset description and validation | Phases 2-3 |
+| At least 3 traveller-profile comparisons | Phase 6 |
 | Limitations and possible unfair outcomes | Phase 9 |
-| Generative-AI declaration (what for, how checked, what you changed) | **keep notes as you go** |
+| Generative-AI declaration (what for, how it was checked, what I changed) | notes kept during the project, see section 8 |
 
-### Grading weights
+Grading weights from the spec, which I use to decide where to spend time:
 
 | Component | Weight |
 |---|---|
@@ -218,31 +264,36 @@ The **report is the main assessed deliverable**. Keep source code out of it.
 
 ---
 
-## 5. Technical requirements – tracker
+## 7. Technical requirements tracker
 
-- [ ] Modular application (multiple cohesive modules)
+Checked against the spec, section 7.
+
+- [ ] Modular application (several cohesive modules)
 - [ ] File I/O (source data, bookings, config, logs)
 - [ ] Custom error handling (invalid input, missing files, inconsistent data)
-- [ ] Regex used where genuinely suitable
+- [ ] Regex used where it genuinely fits
 - [ ] One metaprogramming technique (decorator / registry / descriptor / dynamic discovery)
 - [ ] Intuitive interface (CLI is fine)
-- [ ] Reproducible ranking (same input → same output)
-- [ ] Tests: normal, invalid, missing-data, boundary
+- [ ] Reproducible ranking (same input gives the same output)
+- [ ] Tests for normal, invalid, missing-data and boundary cases
 
 ---
 
-## 6. Working habits that save marks
+## 8. Use of generative AI
 
-1. **Commit after every phase** with a meaningful message.
-2. **Keep `docs/decisions.md` updated** – it feeds the design and reflection sections.
-3. **Log your AI use** as you go (prompt → what you used → how you verified it).
-4. Write the tests for a phase *before or while* coding it, not at the end.
-5. Prefer a small, explainable scoring model over a clever one.
+I'm using Claude (Anthropic) as an assistant in this project. I keep a log here
+as I go so the declaration in the report is accurate.
+
+| Date | What it was used for | How I checked it | What I changed |
+|---|---|---|---|
+| 2026-10-11 | Draft of the project skeleton (folders, starter modules, sample data, starter tests) and a first version of this README | Ran `python main.py` and `pytest`, read through every file | Rewrote the README in my own words, adjusted the roadmap and structure |
+
+I stay responsible for all design decisions and for everything in the submission.
 
 ---
 
-## 7. Python version and dependencies
+## 9. Dependencies
 
 - Python 3.10 or newer
 - No third-party runtime dependencies
-- `pytest` for testing (`requirements.txt`)
+- `pytest` for testing (listed in `requirements.txt`)
