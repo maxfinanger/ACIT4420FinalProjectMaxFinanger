@@ -1,0 +1,50 @@
+digraph architecture {
+  rankdir=TB; fontname="Helvetica"; nodesep=0.35; ranksep=0.45; newrank=true; compound=true;
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, fillcolor="#FFFFFF", color="#555555"];
+  edge [fontname="Helvetica", fontsize=9, color="#555555"];
+
+  subgraph cluster_in { label="Input files"; style="rounded,filled"; fillcolor="#F2F2F2"; color="#BBBBBB";
+    companies [label="companies.csv\ndestinations.csv"];
+    offers    [label="offers.csv"];
+    profiles  [label="profiles.json\n(weights per profile)"];
+  }
+  cli_in  [label="cli.py (1)\ntraveller enters request", fillcolor="#F4E6F7", color="#B58AC0"];
+  cli_out [label="cli.py (2)\nshows ranking + explanation,\ntraveller picks an offer", fillcolor="#F4E6F7", color="#B58AC0"];
+
+  subgraph cluster_load { label="Load and validate (Task 2)"; style="rounded,filled"; fillcolor="#E8F0FA"; color="#9DB7D9";
+    loader     [label="loader.py"];
+    validation [label="validation.py\n(regex, ValidationError)"];
+  }
+
+  subgraph cluster_core { label="Marketplace pipeline (Tasks 3 and Sec. 5-6)"; style="rounded,filled"; fillcolor="#EAF5EA"; color="#9CC79C";
+    marketplace [label="marketplace.py\nMarketplace.search()", fillcolor="#D5EBD5"];
+    filtering   [label="filtering.py\nHARD constraints\n(Constraint classes)"];
+    ranking     [label="ranking.py\nweighted score"];
+    criteria    [label="criteria.py\n@register_criterion\nSOFT criteria registry"];
+    explain     [label="explain.py\nexplanation"];
+  }
+
+  booking [label="booking.py\nBookingService", fillcolor="#FBF1E0", color="#E0BE85"];
+
+  subgraph cluster_out { label="Output files"; style="rounded,filled"; fillcolor="#F2F2F2"; color="#BBBBBB";
+    logfile  [label="logs/busbidder.log"];
+    bookings [label="data/bookings.json"];
+  }
+
+  {rank=same; companies; offers; profiles; cli_in}
+
+  companies -> loader; offers -> loader; profiles -> loader;
+  loader -> validation [label=" raw rows"];
+  validation -> marketplace [label=" valid Offers"];
+  cli_in -> marketplace [label=" TravelRequest"];
+  marketplace -> filtering [label=" all offers"];
+  filtering -> ranking [label=" acceptable offers"];
+  ranking -> criteria [label=" score by name"];
+  ranking -> explain [label=" RankedOffers"];
+  explain -> cli_out [label=" ranking +\nexplanation"];
+  cli_out -> booking [label=" selected offer"];
+  booking -> cli_out [label=" confirmation", style=dotted, constraint=false];
+  booking -> bookings [label=" save"];
+  bookings -> booking [label=" seats sold", style=dashed, constraint=false];
+  validation -> logfile [label=" rejected records", style=dashed];
+}

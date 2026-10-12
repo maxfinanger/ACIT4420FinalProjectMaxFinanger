@@ -19,3 +19,7 @@ class WeightError(BusBidderError):
 
 class BookingError(BusBidderError):
     """A booking could not be completed (e.g. no seats left)."""
+
+
+class UnknownCriterionError(WeightError):
+    """Weights refer to a scoring criterion that is not registered."""

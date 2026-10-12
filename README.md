@@ -4,7 +4,7 @@ Final project for ACIT4420 Problem-solving with scripting (OsloMet, 2026).
 
 BusBidder Spain is a Python application that takes a traveller's request, throws
 out the bus offers that break their hard requirements, and then ranks what is
-left with a weighted scoring model. The aim is that the traveller can see why
+left with a weighted scoring model. The aim is that the traveller can see *why*
 an offer ranks first, and not just that it does.
 
 The question I'm trying to answer in this project:
@@ -12,8 +12,8 @@ The question I'm trying to answer in this project:
 > How can a Python application filter and rank competing bus offers according to
 > the requirements and preferences of an individual traveller?
 
-**Current status:** Phase 0 (skeleton) is finished. Everything after that is still
-to do, see the roadmap in section 5. This README will be updated as I go.
+**Current status:** Phase 0 (skeleton) is finished and the Phase 1 design is drafted
+(waiting for my review). Everything after that is still to do, see the roadmap in section 5. This README will be updated as I go.
 
 ---
 
@@ -70,6 +70,8 @@ busbidder/
 │   ├── models.py            # dataclasses: Company, Offer, TravelRequest, Booking
 │   ├── exceptions.py        # custom exception hierarchy
 │   ├── log_setup.py         # logging to logs/busbidder.log
+│   ├── criteria.py          # scoring criteria registry (decorator) (Phase 1 design)
+│   ├── marketplace.py       # Marketplace: runs filter -> rank
 │   ├── loader.py            # file input and type conversion       (Task 2)
 │   ├── validation.py        # record validation and regex          (Task 2)
 │   ├── filtering.py         # hard-constraint filtering            (Task 3)
@@ -78,9 +80,17 @@ busbidder/
 │   ├── booking.py           # simulated bookings                   (Section 6 in spec)
 │   └── cli.py               # command-line interface
 ├── tests/
-│   └── test_basics.py
+│   ├── test_basics.py
+│   └── test_design.py       # composition, constraints, criteria registry
 ├── logs/
-└── docs/                    # diagrams, screenshots and notes for the report
+├── docs/
+│   ├── requirements.md      # requirements, drafted from the spec
+│   ├── decisions.md         # design decisions: decision, alternatives, reason
+│   ├── architecture.png     # components and flow of information
+│   ├── class_diagram.png    # main classes and their relations
+│   └── diagrams/            # Graphviz sources for the two diagrams
+└── report/
+    └── BusBidder_Report.docx   # report skeleton (written in Word)
 ```
 
 ---
@@ -107,8 +117,8 @@ busbidder/
                                booking.py ──► bookings.json + confirmation
 ```
 
-This is the rough version. I will redraw it properly (draw.io or Mermaid) in
-Phase 1 and put it in `docs/` for the report.
+The proper version of this diagram is `docs/architecture.png` (source in
+`docs/diagrams/`), and the main classes are in `docs/class_diagram.png`.
 
 The main idea is the split between hard constraints and soft preferences.
 Hard constraints (for example destination, budget and travel window) remove an
@@ -116,14 +126,26 @@ offer completely before ranking. Soft preferences (for example preferred
 departure time) only affect the score. Which condition goes where is a design
 decision I still have to make and justify, see Phase 4.
 
+Design choices from Phase 1 (reasons and alternatives are in `docs/decisions.md`):
+
+- **Composition:** an `Offer` has a `FareConditions` object, and a `Booking` keeps a copy of it.
+- **Inheritance:** every hard constraint is a subclass of an abstract `Constraint`, so
+  each one can both test an offer and explain why it was removed.
+- **Metaprogramming:** scoring criteria are registered with a `@register_criterion`
+  decorator, so the weights in `profiles.json` can refer to criteria by name.
+- **`Marketplace`** holds the data and runs the filter-then-rank pipeline, so the
+  CLI only has to talk to one class.
+
 ---
 
 ## 4. Testing
 
 Tests are in `tests/` and run with `python -m pytest -v`.
 
-Right now there are 6 tests, which cover loading the companies and destinations,
-the missing-file error, weight validation and the booking reference pattern.
+Right now there are 15 tests. They cover loading the companies and destinations,
+the missing-file error, weight validation (sum, negative, unknown criterion), the
+booking reference pattern, and the Phase 1 design (fare conditions, the abstract
+constraint, the budget boundary and the criteria registry).
 
 As each phase is finished I will add tests for normal input, invalid input,
 missing data and boundary cases, as the spec requires. Hand-calculated expected
@@ -145,15 +167,19 @@ I commit after every phase.
 - [x] `main.py` runs, 6 starter tests pass
 
 ### [ ] Phase 1: Understand and design (Task 1)
+Drafted, I still need to go through the documents and change what I disagree with.
 Goal: decide what the program is before writing more code.
-- [ ] Write the requirements in its own file (`docs/requirements.md`)
-- [ ] Decide which concepts need classes and which can just be functions
-- [ ] Decide where to use inheritance or composition, and why
-- [ ] Choose the metaprogramming technique (required). Options I'm considering:
-      a decorator for logging/timing, a registry of scoring criteria, a
-      descriptor for validated fields, or dynamic discovery of company modules
-- [ ] Draw the first architecture diagram, saved as `docs/architecture.png`
-- [ ] Start `docs/decisions.md` with decision, alternatives and reason
+- [x] Write the requirements in its own file (`docs/requirements.md`)
+- [x] Decide which concepts need classes and which can just be functions
+- [x] Decide where to use inheritance or composition, and why
+- [x] Choose the metaprogramming technique (required). Chosen: a registry of scoring
+      criteria filled by a decorator. Also considered: a logging/timing decorator, a
+      descriptor for validated fields, dynamic discovery of company modules
+- [x] Draw the first architecture diagram, saved as `docs/architecture.png`
+- [x] Start `docs/decisions.md` with decision, alternatives and reason
+- [x] Class skeletons for the design (`criteria.py`, `marketplace.py`, constraint classes), with tests
+- [x] Start the report skeleton (`report/BusBidder_Report.docx`)
+- [ ] Read through `requirements.md` and `decisions.md` and change what I disagree with
 
 ### [ ] Phase 2: Dataset 
 Goal: a realistic dataset covering 5 companies and 15 destinations.
@@ -238,7 +264,8 @@ Goal: a realistic dataset covering 5 companies and 15 destinations.
 ## 6. Report plan
 
 The report is the main assessed part, so I'm collecting material for it as I go
-instead of writing everything at the end. Source code stays out of the report
+instead of writing everything at the end. The structure is already in
+`report/BusBidder_Report.docx`, with Word comments saying what each section needs. Source code stays out of the report
 as far as possible.
 
 | Required content | Where it comes from |
@@ -286,6 +313,7 @@ as I go so the declaration in the report is accurate.
 | Date | What it was used for | How I checked it | What I changed |
 |---|---|---|---|
 | 2026-10-11 | Draft of the project skeleton (folders, starter modules, sample data, starter tests) and a first version of this README | Ran `python main.py` and `pytest`, read through every file | Rewrote the README in my own words, adjusted the roadmap and structure |
+| 2026-10-12 | Phase 1 draft: class skeletons, decision log, requirements draft, diagrams (Graphviz) and the empty report structure with guidance comments | Ran the tests (15 pass), checked the diagrams visually | TODO: write what I changed after my review |
 
 I stay responsible for all design decisions and for everything in the submission.
 
