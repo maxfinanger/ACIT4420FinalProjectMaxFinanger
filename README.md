@@ -157,13 +157,13 @@ This is my plan. I'm using it to work in small steps, to show progress in the
 git history, and to check along the way that the program fits the specification.
 I commit after every phase.
 
-### [x] Phase 0: Skeleton (done)
+### [x] Phase 0: Skeleton
 - [x] Folder structure and modules created
 - [x] Sample data for companies, destinations and offers
 - [x] Custom exceptions, logging setup, dataclass models
 - [x] `main.py` runs, 6 starter tests pass
 
-### [X] Phase 1: Understand and design (Task 1)
+### [X] Phase 1: Understand and design
 - [x] Write the requirements in its own file (`docs/requirements.md`)
 - [x] Decide which concepts need classes and which can just be functions
 - [x] Decide where to use inheritance or composition, and why
