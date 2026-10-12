@@ -6,7 +6,7 @@ Design notes (see docs/decisions.md):
   fare conditions that applied when it was made.
 """
 from dataclasses import dataclass
-from datetime import date, time
+from datetime import date, datetime, time
 
 
 @dataclass(frozen=True)
@@ -26,6 +26,7 @@ class FareConditions:
     changeable: bool
     refundable: bool
     luggage_kg: int
+    fare_type: str = "Standard"     # label from the data, e.g. Basic / Standard / Flex
 
 
 @dataclass
@@ -35,19 +36,28 @@ class Offer:
     destination: str
     travel_date: date
     departure_time: time
+    arrival_date: date              # differs from travel_date for overnight journeys
     arrival_time: time
     price: float
     transfers: int
     fare: FareConditions
     seats_available: int
     rating: float
+    emissions_kg: float | None = None   # optional environmental measure (kg CO2 per passenger)
+
+    @property
+    def departure_datetime(self) -> datetime:
+        return datetime.combine(self.travel_date, self.departure_time)
+
+    @property
+    def arrival_datetime(self) -> datetime:
+        return datetime.combine(self.arrival_date, self.arrival_time)
 
     @property
     def duration_minutes(self) -> int:
-        # TODO (Phase 3): handle overnight journeys (arrival on the next day).
-        dep = self.departure_time.hour * 60 + self.departure_time.minute
-        arr = self.arrival_time.hour * 60 + self.arrival_time.minute
-        return arr - dep
+        """Journey time in minutes. Works for overnight journeys because the
+        arrival has its own date (decision D11)."""
+        return int((self.arrival_datetime - self.departure_datetime).total_seconds() // 60)
 
 
 @dataclass

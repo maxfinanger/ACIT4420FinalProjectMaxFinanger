@@ -1,6 +1,0 @@
-{
-  "_comment": "Weights per traveller profile. Each profile's weights must sum to 1.0 (validated in ranking.py).",
-  "budget_traveller":   {"price": 0.55, "duration": 0.15, "departure": 0.10, "flexibility": 0.20},
-  "business_traveller": {"price": 0.15, "duration": 0.40, "departure": 0.30, "flexibility": 0.15},
-  "flexible_tourist":   {"price": 0.25, "duration": 0.15, "departure": 0.10, "flexibility": 0.50}
-}

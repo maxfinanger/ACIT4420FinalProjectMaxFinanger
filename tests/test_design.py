@@ -11,7 +11,8 @@ from busbidder.ranking import validate_weights
 
 def make_offer(price=40.0):
     return Offer("OF-0001", "SolRuta", "Malaga", date(2026, 7, 12), time(8, 0),
-                 time(14, 0), price, 0, FareConditions(True, False, 20), 5, 4.0)
+                 date(2026, 7, 12), time(14, 0), price, 0,
+                 FareConditions(True, False, 20), 5, 4.0)
 
 
 def make_request(budget=50.0):
@@ -22,6 +23,14 @@ def test_offer_has_fare_conditions_by_composition():
     offer = make_offer()
     assert offer.fare.changeable is True
     assert offer.duration_minutes == 360
+
+
+def test_overnight_duration_uses_arrival_date():
+    offer = make_offer()
+    offer.departure_time = time(23, 30)
+    offer.arrival_date = date(2026, 7, 13)
+    offer.arrival_time = time(6, 15)
+    assert offer.duration_minutes == 6 * 60 + 45
 
 
 def test_fare_conditions_are_immutable():

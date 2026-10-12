@@ -1,13 +1,13 @@
 # Design decisions log
 
 Format: decision, alternatives I looked at, reason. Status is **Proposed** until
-I have read it and agreed, then **Decided**. Final wording for the report comes
+I have read it and agreed, then **Decided**. D1-D9 were reviewed after Phase 1. Final wording for the report comes
 from here. Decisions marked "preliminary" will be confirmed in the phase named.
 
 ---
 
 ## D1. Standard library only, CSV and JSON files
-- **Status:** Proposed
+- **Status:** Decided
 - **Decision:** No third-party runtime libraries. Offers, companies and
   destinations are CSV files. Profiles/weights and bookings are JSON.
 - **Alternatives:** pandas for data handling; SQLite for offers and bookings.
@@ -17,7 +17,7 @@ from here. Decisions marked "preliminary" will be confirmed in the phase named.
   logic I have to show. SQLite is better for concurrency, which is not needed here.
 
 ## D2. Classes where there is state or shared behaviour, functions elsewhere
-- **Status:** Proposed
+- **Status:** Decided
 - **Decision:**
   - Dataclasses for data: `Offer`, `FareConditions`, `TravelRequest`, `RankedOffer`, `Booking`, `Company`, `Destination`.
   - Classes for behaviour that has state or several variants: `Marketplace`, `BookingService`, the `Constraint` family.
@@ -29,7 +29,7 @@ from here. Decisions marked "preliminary" will be confirmed in the phase named.
   validation harder to explain.
 
 ## D3. Composition for fares and for the Marketplace
-- **Status:** Proposed
+- **Status:** Decided
 - **Decision:** An `Offer` has a `FareConditions` object (changeable, refundable,
   luggage) instead of three loose fields. A `Booking` stores a copy of the
   `FareConditions`. `Marketplace` holds the data and calls filtering and ranking.
@@ -39,7 +39,7 @@ from here. Decisions marked "preliminary" will be confirmed in the phase named.
   offer *is not* a kind of fare, so inheritance would be wrong here.
 
 ## D4. Inheritance for hard constraints
-- **Status:** Proposed
+- **Status:** Decided
 - **Decision:** Abstract base class `Constraint` with `is_satisfied()` and
   `reason()`. One subclass per hard constraint (`BudgetConstraint`,
   `DestinationConstraint`, `TravelWindowConstraint`, `SeatsConstraint`,
@@ -54,7 +54,7 @@ from here. Decisions marked "preliminary" will be confirmed in the phase named.
   "is-a" relationship between them.
 
 ## D5. Metaprogramming: decorator-based registry of scoring criteria
-- **Status:** Proposed
+- **Status:** Decided
 - **Decision:** `@register_criterion("price")` adds a scoring function to a
   registry in `criteria.py`. The ranker looks criteria up by name, and weight
   validation checks that every name in the weights exists in the registry.
@@ -70,7 +70,7 @@ from here. Decisions marked "preliminary" will be confirmed in the phase named.
   I should be able to show one example of a criterion added without editing `ranking.py`.
 
 ## D6. Hard constraints versus soft preferences (preliminary, finalise in Phase 4)
-- **Status:** Proposed
+- **Status:** Decided (preliminary, confirmed in Phase 4)
 - **Hard (offer is removed):** destination, travel window, budget, seats > 0,
   maximum transfers, and ticket flexibility *only if the traveller marks it as required*.
 - **Soft (affects score only):** departure time, journey duration, flexibility
@@ -82,7 +82,7 @@ from here. Decisions marked "preliminary" will be confirmed in the phase named.
   something that can be traded off against other criteria.
 
 ## D7. Invalid records are rejected and logged, not corrected (preliminary, finalise in Phase 3)
-- **Status:** Proposed
+- **Status:** Decided (preliminary, confirmed in Phase 3)
 - **Decision:** A record that fails validation is skipped, written to the log
   with its id and reason, and counted. The program continues with the valid rows.
   If a whole file is missing, or the header is wrong, the program stops with a `DataFileError`.
@@ -92,13 +92,13 @@ from here. Decisions marked "preliminary" will be confirmed in the phase named.
   row would make the program fragile.
 
 ## D8. Command-line interface first
-- **Status:** Proposed
+- **Status:** Decided
 - **Decision:** A CLI is enough for the core project. A GUI/web interface is only an optional extension.
 - **Reason:** The assessment focuses on design, evaluation and the report, so
   effort is better spent on testing and evaluation.
 
 ## D9. The offers file is never modified
-- **Status:** Proposed
+- **Status:** Decided
 - **Decision:** `data/offers.csv` stays unchanged. Seats left for an offer are
   computed as seats in the file minus seats already booked in `data/bookings.json`.
 - **Alternatives:** Rewrite `offers.csv` after each booking; keep seat counts only in memory.
@@ -106,6 +106,42 @@ from here. Decisions marked "preliminary" will be confirmed in the phase named.
   data, so the source data should not change when someone books. It also makes
   "reduce capacity consistently" easy to test, because the bookings file is the
   single source of truth for seats sold.
+
+## D10. The dataset is generated by a seeded script and committed
+- **Status:** Decided
+- **Decision:** `scripts/generate_data.py` creates `data/offers.csv` (and the invalid
+  test file) with a fixed random seed. The generated files are kept in the repository.
+  The differences between the companies are defined in one place in the script.
+- **Alternatives:** Writing 75+ rows by hand; generating the data every time the program starts.
+- **Reason:** By hand, 1000+ rows with consistent prices and times is not realistic,
+  and errors would be hard to find. A fixed seed makes the dataset reproducible for the
+  report. Committing the files means the program runs without a generation step, and a test
+  checks that the file and the script still agree. Company behaviour as parameters (price
+  level, speed, departure times, transfers, fare types) makes the "how do the companies
+  differ" decision explicit and easy to explain.
+
+## D11. Overnight journeys are represented with an arrival date
+- **Status:** Decided
+- **Decision:** Each offer has `travel_date` (departure) and `arrival_date`.
+  Duration = arrival datetime minus departure datetime. Validation "arrival before
+  departure" compares full datetimes, and a maximum plausible duration of 24 hours catches
+  impossible rows.
+- **Alternatives:** Only times (arrival "before" departure means next day); a stored duration column;
+  an `overnight` flag.
+- **Reason:** With only times, an overnight NocheVia bus would look exactly like an invalid
+  record. A stored duration could contradict the times. With two full dates the duration is
+  always derived and there is nothing to keep consistent.
+
+## D12. Fare types decide the fare conditions
+- **Status:** Decided
+- **Decision:** Every departure is sold in 1-3 fare types (Basic, Standard, Flex) with
+  different price, changeable, refundable and luggage values. Each fare type is a separate
+  offer row with its own seat count.
+- **Alternatives:** One row per departure with a fare-conditions table on the side.
+- **Reason:** The spec treats price and flexibility as trade-offs, and the same bus with a
+  cheaper non-changeable fare and a more expensive flexible fare is exactly that trade-off. One
+  row per fare keeps the filtering and ranking code simple (an offer is one thing to score).
+  The simplification is that fare types do not share seats on the same bus.
 
 ---
 

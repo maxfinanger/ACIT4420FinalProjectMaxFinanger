@@ -1,3 +1,0 @@
-# Core app uses only the Python standard library.
-# Testing:
-pytest>=8.0

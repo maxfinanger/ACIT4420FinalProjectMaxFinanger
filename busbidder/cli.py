@@ -15,4 +15,4 @@ def run() -> None:
     print(f"Companies    : {len(companies)}")
     print(f"Destinations : {len(destinations)}")
     print(f"Profiles     : {', '.join(profiles)}")
-    print("\n(Skeleton and design in place. Next: Phase 2 (dataset), see README.)")
+    print("\n(Skeleton and design in place. Next: Phase 3 (loading and validation), see README.)")

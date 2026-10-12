@@ -1,0 +1,102 @@
+[
+  {
+    "row": 1,
+    "offer_id": "OF-9001",
+    "expected": "valid"
+  },
+  {
+    "row": 2,
+    "offer_id": "OF-9002",
+    "expected": "negative_price"
+  },
+  {
+    "row": 3,
+    "offer_id": "OF-9003",
+    "expected": "unknown_destination"
+  },
+  {
+    "row": 4,
+    "offer_id": "OF-9004",
+    "expected": "unknown_company"
+  },
+  {
+    "row": 5,
+    "offer_id": "OF-9005",
+    "expected": "invalid_date"
+  },
+  {
+    "row": 6,
+    "offer_id": "OF-9006",
+    "expected": "arrival_before_departure"
+  },
+  {
+    "row": 7,
+    "offer_id": "OF-9007",
+    "expected": "rating_out_of_range"
+  },
+  {
+    "row": 8,
+    "offer_id": "OF-9008",
+    "expected": "rating_out_of_range"
+  },
+  {
+    "row": 9,
+    "offer_id": "OF-9009",
+    "expected": "no_seats"
+  },
+  {
+    "row": 10,
+    "offer_id": "OF-9010",
+    "expected": "missing_field"
+  },
+  {
+    "row": 11,
+    "offer_id": "OF-9011",
+    "expected": "invalid_number"
+  },
+  {
+    "row": 12,
+    "offer_id": "BUS-12",
+    "expected": "bad_offer_id"
+  },
+  {
+    "row": 13,
+    "offer_id": "OF-9013",
+    "expected": "invalid_time"
+  },
+  {
+    "row": 14,
+    "offer_id": "OF-9014",
+    "expected": "negative_transfers"
+  },
+  {
+    "row": 15,
+    "offer_id": "OF-9015",
+    "expected": "invalid_boolean"
+  },
+  {
+    "row": 16,
+    "offer_id": "OF-9001",
+    "expected": "duplicate_id"
+  },
+  {
+    "row": 17,
+    "offer_id": "OF-9017",
+    "expected": "malformed_row"
+  },
+  {
+    "row": 18,
+    "offer_id": "OF-9018",
+    "expected": "impossible_duration"
+  },
+  {
+    "row": 19,
+    "offer_id": "OF-9019",
+    "expected": "valid"
+  },
+  {
+    "row": 20,
+    "offer_id": "OF-9020",
+    "expected": "valid"
+  }
+]
