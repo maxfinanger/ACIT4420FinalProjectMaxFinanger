@@ -12,9 +12,6 @@ The question I'm trying to answer in this project:
 > How can a Python application filter and rank competing bus offers according to
 > the requirements and preferences of an individual traveller?
 
-**Current status:** Phases 0 to 2 are finished (skeleton, design and dataset). Phase 3
-(loading and validation) is next, see the roadmap in section 5. This README will be updated as I go.
-
 ---
 
 ## 1. Setup and how to run
@@ -39,14 +36,10 @@ python main.py
 
 # run the tests
 python -m pytest -v
-
-# (optional) regenerate the dataset, it is reproducible (fixed seed)
-python scripts/generate_data.py
 ```
 
-All commands need to be run from the project root, because the data and config
-paths are relative. The generated data files are already in the repository, so the
-generator only has to be run if I change it.
+Both commands need to be run from the project root, because the data and config
+paths are relative.
 
 At the moment `main.py` only loads the companies, destinations and profiles and
 prints a short summary. That is on purpose, the first step was just to get a
@@ -68,12 +61,8 @@ busbidder/
 ├── data/
 │   ├── companies.csv        # the 5 companies
 │   ├── destinations.csv     # the 15 destinations
-│   ├── offers.csv           # 1497 generated offers (scripts/generate_data.py)
-│   ├── offers_invalid.csv   # broken rows for testing validation
-│   ├── offers_invalid_expected.json   # what each broken row should be detected as
+│   ├── offers.csv           # sample offers (only 3 rows atm)
 │   └── bookings.json        # created at runtime (git-ignored)
-├── scripts/
-│   └── generate_data.py     # makes the dataset (fixed seed, reproducible)
 ├── busbidder/               # the application package
 │   ├── models.py            # dataclasses: Company, Offer, TravelRequest, Booking
 │   ├── exceptions.py        # custom exception hierarchy
@@ -89,13 +78,11 @@ busbidder/
 │   └── cli.py               # command-line interface
 ├── tests/
 │   ├── test_basics.py
-│   ├── test_design.py       # composition, constraints, criteria registry
-│   └── test_dataset.py      # the generated dataset and the invalid test file
+│   └── test_design.py       # composition, constraints, criteria registry
 ├── logs/
 ├── docs/
 │   ├── requirements.md      # requirements, drafted from the spec
 │   ├── decisions.md         # design decisions: decision, alternatives, reason
-│   ├── dataset.md           # how the dataset is built and how the companies differ
 │   ├── architecture.png     # components and flow of information
 │   ├── class_diagram.png    # main classes and their relations
 │   └── diagrams/            # Graphviz sources for the two diagrams
@@ -152,12 +139,10 @@ Design choices from Phase 1 (reasons and alternatives are in `docs/decisions.md`
 
 Tests are in `tests/` and run with `python -m pytest -v`.
 
-Right now there are 28 tests. They cover loading the companies and destinations,
+Right now there are 15 tests. They cover loading the companies and destinations,
 the missing-file error, weight validation (sum, negative, unknown criterion), the
-booking reference pattern, the Phase 1 design (fare conditions, the abstract
-constraint, the budget boundary, the criteria registry, overnight durations) and the
-dataset (reproducible generation, 75+ company-destination combinations, unique ids,
-sensible values, and that the invalid file matches its expectations).
+booking reference pattern, and the Phase 1 design (fare conditions, the abstract
+constraint, the budget boundary and the criteria registry).
 
 As each phase is finished I will add tests for normal input, invalid input,
 missing data and boundary cases, as the spec requires. Hand-calculated expected
@@ -178,8 +163,7 @@ I commit after every phase.
 - [x] Custom exceptions, logging setup, dataclass models
 - [x] `main.py` runs, 6 starter tests pass
 
-### [x] Phase 1: Understand and design (Task 1)
-Goal: decide what the program is before writing more code.
+### [X] Phase 1: Understand and design (Task 1)
 - [x] Write the requirements in its own file (`docs/requirements.md`)
 - [x] Decide which concepts need classes and which can just be functions
 - [x] Decide where to use inheritance or composition, and why
@@ -191,14 +175,12 @@ Goal: decide what the program is before writing more code.
 - [x] Class skeletons for the design (`criteria.py`, `marketplace.py`, constraint classes), with tests
 - [x] Start the report skeleton (`report/BusBidder_Report.docx`)
 
-### [x] Phase 2: Dataset 
-Goal: a realistic dataset covering 5 companies and 15 destinations.
-Details and the numbers are in `docs/dataset.md`.
-- [x] Decide how each company differs (routes, prices, times, fare rules)
-- [x] Write or generate `offers.csv` with at least 75 company-destination
+### [X] Phase 2: Dataset 
+- [X] Decide how each company differs (routes, prices, times, fare rules)
+- [X] Write or generate `offers.csv` with at least 75 company-destination
       combinations, ideally with several departure times or fare types each
-- [x] Keep it reproducible: if I generate the data with a script, use a fixed random seed
-- [x] Make a separate `offers_invalid.csv` with bad rows for testing (negative
+- [X] Keep it reproducible: if I generate the data with a script, use a fixed random seed
+- [X] Make a separate `offers_invalid.csv` with bad rows for testing (negative
       price, unknown destination, arrival before departure, rating outside 0-5,
       zero seats, bad date, missing field)
 
@@ -209,9 +191,8 @@ Details and the numbers are in `docs/dataset.md`.
 - [ ] Use regex where it fits (booking reference, which is already started, and offer IDs like `OF-\d{4}`)
 - [ ] Decide and document whether invalid records are rejected, corrected or set aside
 - [ ] Log every rejected record with the reason
-- [x] Handle overnight journeys in `Offer.duration_minutes` (done in Phase 2: offers have an `arrival_date`, see D11)
+- [ ] Handle overnight journeys in `Offer.duration_minutes` (needed for NocheVia)
 - [ ] Tests: normal, invalid, missing file, missing field, boundary values
-      (expected results for every row of `offers_invalid.csv` are in `offers_invalid_expected.json`)
 
 ### [ ] Phase 4: Hard constraints
 - [ ] Decide which conditions are hard (must hold) and which are soft (preference)
@@ -283,7 +264,7 @@ as far as possible.
 | Required content | Where it comes from |
 |---|---|
 | Flowchart / architecture diagram | Phase 1 |
-| Dataset description and validation | Phases 2-3 (`docs/dataset.md`) |
+| Dataset description and validation | Phases 2-3 |
 | At least 3 traveller-profile comparisons | Phase 6 |
 | Limitations and possible unfair outcomes | Phase 9 |
 | Generative-AI declaration (what for, how it was checked, what I changed) | notes kept during the project, see section 8 |
@@ -319,32 +300,15 @@ Checked against the spec, section 7.
 
 ## 8. Use of generative AI
 
-I use Claude (Anthropic) as an assistant during the project. This is the general
-picture of how, and I will keep it up to date if the way I use it changes.
+I'm using Claude (Anthropic) as an assistant in this project. I keep a log here
+as I go so the declaration in the report is accurate.
 
-**What I use it for**
+| Date | What it was used for | How I checked it | What I changed |
+|---|---|---|---|
+| 2026-10-11 | Draft of the project skeleton (folders, starter modules, sample data, starter tests) and a first version of this README | Ran `python main.py` and `pytest`, read through every file | Rewrote the README in my own words, adjusted the roadmap and structure |
+| 2026-10-12 | Phase 1 draft: class skeletons, decision log, requirements draft, diagrams (Graphviz) and the empty report structure with guidance comments | Ran the tests (15 pass), checked the diagrams visually | TODO: write what I changed after my review |
 
-- Planning and structure: breaking the specification into phases, the structure of this
-  README, and the outline of the report with guidance comments.
-- Code: first drafts of the project skeleton, the class design, the data generation
-  script and the tests.
-- Illustrations: the architecture diagram and the class diagram (Graphviz sources are
-  in `docs/diagrams/`).
-- General questions and discussing design alternatives (for example which
-  metaprogramming technique to use).
-
-**How I check it**
-
-I run the program and the tests, read through the generated code and documents, check
-the diagrams against the code, and compare everything with the specification. The data
-generator is checked with tests, and the generated dataset is checked against the
-summary statistics in `docs/dataset.md`.
-
-**What is mine**
-
-I have read and agreed with the design decisions in `docs/decisions.md`, and I edit
-the README and the other documents myself. I write the report text myself. I stay
-responsible for all design decisions and for everything in the submission.
+I stay responsible for all design decisions and for everything in the submission.
 
 ---
 
