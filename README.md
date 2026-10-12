@@ -4,7 +4,7 @@ Final project for ACIT4420 Problem-solving with scripting (OsloMet, 2026).
 
 BusBidder Spain is a Python application that takes a traveller's request, throws
 out the bus offers that break their hard requirements, and then ranks what is
-left with a weighted scoring model. The aim is that the traveller can see *why*
+left with a weighted scoring model. The aim is that the traveller can see why
 an offer ranks first, and not just that it does.
 
 The question I'm trying to answer in this project:
@@ -29,12 +29,12 @@ to do, see the roadmap in section 5. This README will be updated as I go.
 ```bash
 # create and activate a virtual environment
 python -m venv .venv
-source .venv/bin/activate        # on Windows: .venv\Scripts\activate
+source .venv/bin/activate      
 
 # install dependencies
 pip install -r requirements.txt
 
-# run the application (from the project root)
+# run the application from the project root
 python main.py
 
 # run the tests
@@ -146,7 +146,7 @@ I commit after every phase.
 
 ### [ ] Phase 1: Understand and design (Task 1)
 Goal: decide what the program is before writing more code.
-- [ ] Write the requirements in my own words (`docs/requirements.md`)
+- [ ] Write the requirements in its own file (`docs/requirements.md`)
 - [ ] Decide which concepts need classes and which can just be functions
 - [ ] Decide where to use inheritance or composition, and why
 - [ ] Choose the metaprogramming technique (required). Options I'm considering:
@@ -154,9 +154,8 @@ Goal: decide what the program is before writing more code.
       descriptor for validated fields, or dynamic discovery of company modules
 - [ ] Draw the first architecture diagram, saved as `docs/architecture.png`
 - [ ] Start `docs/decisions.md` with decision, alternatives and reason
-      (this will be raw material for the report)
 
-### [ ] Phase 2: Dataset (Task 2)
+### [ ] Phase 2: Dataset 
 Goal: a realistic dataset covering 5 companies and 15 destinations.
 - [ ] Decide how each company differs (routes, prices, times, fare rules)
 - [ ] Write or generate `offers.csv` with at least 75 company-destination
@@ -166,7 +165,7 @@ Goal: a realistic dataset covering 5 companies and 15 destinations.
       price, unknown destination, arrival before departure, rating outside 0-5,
       zero seats, bad date, missing field)
 
-### [ ] Phase 3: Load and validate (Task 2)
+### [ ] Phase 3: Load and validate 
 - [ ] Implement `load_offers()` in `loader.py` (str to date, time, float, bool)
 - [ ] Implement `validate_offer()` in `validation.py`
 - [ ] Raise the custom exceptions (`ValidationError`, `DataFileError`)
@@ -176,7 +175,7 @@ Goal: a realistic dataset covering 5 companies and 15 destinations.
 - [ ] Handle overnight journeys in `Offer.duration_minutes` (needed for NocheVia)
 - [ ] Tests: normal, invalid, missing file, missing field, boundary values
 
-### [ ] Phase 4: Hard constraints (Task 3)
+### [ ] Phase 4: Hard constraints
 - [ ] Decide which conditions are hard (must hold) and which are soft (preference)
 - [ ] Implement `filter_offers()` for destination, travel window, budget, seats,
       max transfers and mandatory flexibility
@@ -184,7 +183,7 @@ Goal: a realistic dataset covering 5 companies and 15 destinations.
 - [ ] Handle the case where no offers survive
 - [ ] Tests including boundaries (price exactly at budget, date exactly on the window edge)
 
-### [ ] Phase 5: Weighted ranking (Section 5 in spec)
+### [ ] Phase 5: Weighted ranking 
 - [ ] Normalise each criterion to a 0-100 scale
   - price and duration: lower is better, so invert
   - departure convenience: based on distance from the preferred time
@@ -196,7 +195,7 @@ Goal: a realistic dataset covering 5 companies and 15 destinations.
 - [ ] Return the score per criterion and the total score for every offer
 - [ ] Tests with hand-calculated expected scores on a tiny dataset
 
-### [ ] Phase 6: Explanation and traveller profiles (Section 6 in spec)
+### [ ] Phase 6: Explanation and traveller profiles 
 - [ ] Implement `explain_top_offer()`, generated from the data
       (e.g. "direct route, departs 40 min from preferred time, flexible fare;
       drawback: EUR 7 above the cheapest")
@@ -205,7 +204,7 @@ Goal: a realistic dataset covering 5 companies and 15 destinations.
 - [ ] Run at least 3 profiles on the same request (budget, business, flexible
       tourist) and save the output to `docs/profile_comparison.md`
 
-### [ ] Phase 7: Booking (Section 6 in spec)
+### [ ] Phase 7: Booking 
 - [ ] Let the user select an offer from the ranking
 - [ ] Check that seats are still available
 - [ ] Generate a unique booking reference that matches the regex
@@ -219,11 +218,11 @@ Goal: a realistic dataset covering 5 companies and 15 destinations.
 - [ ] Input validation with helpful error messages
 - [ ] Optional extensions if there is time: cancellation/refund, vouchers, return trips, GUI/web
 
-### [ ] Phase 9: Evaluation (20% of the grade, so not something to leave for last)
+### [ ] Phase 9: Evaluation
 - [ ] Run experiments where I change the weights and see how the ranking changes
 - [ ] Check sensitivity: does one criterion dominate (e.g. when the price range is wide)?
 - [ ] Look for unfair or unreasonable outcomes (e.g. overnight buses being
-      penalised by the departure convenience criterion)
+      penalized by the departure convenience criterion)
 - [ ] Write down limitations and what I would improve
 - [ ] Save screenshots, tables and log excerpts to `docs/`
 
