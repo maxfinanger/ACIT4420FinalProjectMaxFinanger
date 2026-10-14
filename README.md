@@ -36,16 +36,24 @@ python main.py
 
 # run the tests
 python -m pytest -v
+
+# (optional) regenerate the dataset, it is reproducible (fixed seed)
+python scripts/generate_data.py
+
+# see the validation reject the deliberately broken test file
+python main.py --offers data/offers_invalid.csv
 ```
 
-Both commands need to be run from the project root, because the data and config
-paths are relative.
+All commands need to be run from the project root, because the data and config
+paths are relative. The generated data files are already in the repository, so the
+generator only has to be run if I change it.
 
-At the moment `main.py` only loads the companies, destinations and profiles and
-prints a short summary. That is on purpose, the first step was just to get a
-working skeleton before adding logic.
+At the moment `main.py` loads the companies, destinations, profiles and offers,
+validates the offers and prints a short summary (plus the rejected rows, if any).
+Filtering, ranking and booking come in the next phases.
 
-Logs are written to `logs/busbidder.log` when the program runs.
+Logs are written to `logs/busbidder.log` when the program runs. Every rejected
+offer record is logged there with its row number, id and reason.
 
 ---
 
@@ -61,28 +69,38 @@ busbidder/
 ├── data/
 │   ├── companies.csv        # the 5 companies
 │   ├── destinations.csv     # the 15 destinations
-│   ├── offers.csv           # sample offers (only 3 rows atm)
+│   ├── offers.csv           # 1497 generated offers (scripts/generate_data.py)
+│   ├── offers_invalid.csv   # broken rows for testing validation
+│   ├── offers_invalid_expected.json   # what each broken row should be detected as
 │   └── bookings.json        # created at runtime (git-ignored)
+├── scripts/
+│   └── generate_data.py     # makes the dataset (fixed seed, reproducible)
 ├── busbidder/               # the application package
 │   ├── models.py            # dataclasses: Company, Offer, TravelRequest, Booking
 │   ├── exceptions.py        # custom exception hierarchy
 │   ├── log_setup.py         # logging to logs/busbidder.log
 │   ├── criteria.py          # scoring criteria registry (decorator) (Phase 1 design)
 │   ├── marketplace.py       # Marketplace: runs filter -> rank
-│   ├── loader.py            # file input and type conversion       (Task 2)
-│   ├── validation.py        # record validation and regex          (Task 2)
+│   ├── loader.py            # file input, type conversion, LoadResult (Task 2)
+│   ├── validation.py        # business rules and regex patterns    (Task 2)
 │   ├── filtering.py         # hard-constraint filtering            (Task 3)
 │   ├── ranking.py           # weighted scoring                     (Section 5 in spec)
 │   ├── explain.py           # "why is this ranked first?"          (Section 6 in spec)
 │   ├── booking.py           # simulated bookings                   (Section 6 in spec)
 │   └── cli.py               # command-line interface
 ├── tests/
+│   ├── conftest.py          # shared fixtures (valid offer and row)
 │   ├── test_basics.py
-│   └── test_design.py       # composition, constraints, criteria registry
+│   ├── test_design.py       # composition, constraints, criteria registry
+│   ├── test_dataset.py      # the generated dataset and the invalid test file
+│   ├── test_validation.py   # validation rules, boundaries, regex patterns
+│   └── test_loader.py       # conversion, file errors, rejected rows, logging
 ├── logs/
 ├── docs/
 │   ├── requirements.md      # requirements, drafted from the spec
 │   ├── decisions.md         # design decisions: decision, alternatives, reason
+│   ├── dataset.md           # how the dataset is built and how the companies differ
+│   ├── validation.md        # validation rules, error categories, policy
 │   ├── architecture.png     # components and flow of information
 │   ├── class_diagram.png    # main classes and their relations
 │   └── diagrams/            # Graphviz sources for the two diagrams
@@ -139,10 +157,17 @@ Design choices from Phase 1 (reasons and alternatives are in `docs/decisions.md`
 
 Tests are in `tests/` and run with `python -m pytest -v`.
 
-Right now there are 15 tests. They cover loading the companies and destinations,
-the missing-file error, weight validation (sum, negative, unknown criterion), the
-booking reference pattern, and the Phase 1 design (fare conditions, the abstract
-constraint, the budget boundary and the criteria registry).
+Right now there are 112 tests. They cover:
+
+- **Design:** fare conditions, the abstract constraint, the budget boundary, the
+  criteria registry, overnight durations, weight validation.
+- **Dataset:** reproducible generation, 75+ company-destination combinations, unique ids,
+  sensible values, and that the invalid file matches its expectations.
+- **Validation:** every error category, boundary values (price 0.01 accepted and 0
+  rejected, duration exactly 24 h accepted, rating 0 and 5 accepted), regex patterns.
+- **Loading:** type conversion, missing/empty/unreadable files, wrong header, duplicate ids,
+  logging, and the real file (1497 accepted, 0 rejected). The invalid file is checked
+  row by row against `data/offers_invalid_expected.json`.
 
 As each phase is finished I will add tests for normal input, invalid input,
 missing data and boundary cases, as the spec requires. Hand-calculated expected
@@ -163,7 +188,7 @@ I commit after every phase.
 - [x] Custom exceptions, logging setup, dataclass models
 - [x] `main.py` runs, 6 starter tests pass
 
-### [X] Phase 1: Understand and design
+### [x] Phase 1: Understand and design
 - [x] Write the requirements in its own file (`docs/requirements.md`)
 - [x] Decide which concepts need classes and which can just be functions
 - [x] Decide where to use inheritance or composition, and why
@@ -175,24 +200,26 @@ I commit after every phase.
 - [x] Class skeletons for the design (`criteria.py`, `marketplace.py`, constraint classes), with tests
 - [x] Start the report skeleton (`report/BusBidder_Report.docx`)
 
-### [X] Phase 2: Dataset 
-- [X] Decide how each company differs (routes, prices, times, fare rules)
-- [X] Write or generate `offers.csv` with at least 75 company-destination
+### [x] Phase 2: Dataset 
+- [x] Decide how each company differs (routes, prices, times, fare rules)
+- [x] Write or generate `offers.csv` with at least 75 company-destination
       combinations, ideally with several departure times or fare types each
-- [X] Keep it reproducible: if I generate the data with a script, use a fixed random seed
-- [X] Make a separate `offers_invalid.csv` with bad rows for testing (negative
+- [x] Keep it reproducible: if I generate the data with a script, use a fixed random seed
+- [x] Make a separate `offers_invalid.csv` with bad rows for testing (negative
       price, unknown destination, arrival before departure, rating outside 0-5,
       zero seats, bad date, missing field)
 
-### [ ] Phase 3: Load and validate 
-- [ ] Implement `load_offers()` in `loader.py` (str to date, time, float, bool)
-- [ ] Implement `validate_offer()` in `validation.py`
-- [ ] Raise the custom exceptions (`ValidationError`, `DataFileError`)
-- [ ] Use regex where it fits (booking reference, which is already started, and offer IDs like `OF-\d{4}`)
-- [ ] Decide and document whether invalid records are rejected, corrected or set aside
-- [ ] Log every rejected record with the reason
-- [ ] Handle overnight journeys in `Offer.duration_minutes` (needed for NocheVia)
-- [ ] Tests: normal, invalid, missing file, missing field, boundary values
+### [x] Phase 3: Load and validate 
+- [x] Implement `load_offers()` in `loader.py` (str to date, time, float, bool)
+- [x] Implement `validate_offer()` in `validation.py`
+- [x] Raise the custom exceptions (`ValidationError` with a category, `DataFileError`)
+- [x] Use regex where it fits (offer id, booking reference, date and time formats, see D13)
+- [x] Decide and document whether invalid records are rejected, corrected or set aside
+      (rejected and logged, see D7 and `docs/validation.md`)
+- [x] Log every rejected record with the reason
+- [x] Handle overnight journeys in `Offer.duration_minutes` (done in Phase 2: offers have an `arrival_date`, see D11)
+- [x] Tests: normal, invalid, missing file, missing field, boundary values
+      (expected results for every row of `offers_invalid.csv` are in `offers_invalid_expected.json`)
 
 ### [ ] Phase 4: Hard constraints
 - [ ] Decide which conditions are hard (must hold) and which are soft (preference)
@@ -264,7 +291,7 @@ as far as possible.
 | Required content | Where it comes from |
 |---|---|
 | Flowchart / architecture diagram | Phase 1 |
-| Dataset description and validation | Phases 2-3 |
+| Dataset description and validation | Phases 2-3 (`docs/dataset.md`, `docs/validation.md`) |
 | At least 3 traveller-profile comparisons | Phase 6 |
 | Limitations and possible unfair outcomes | Phase 9 |
 | Generative-AI declaration (what for, how it was checked, what I changed) | notes kept during the project, see section 8 |
@@ -300,15 +327,32 @@ Checked against the spec, section 7.
 
 ## 8. Use of generative AI
 
-I'm using Claude (Anthropic) as an assistant in this project. I keep a log here
-as I go so the declaration in the report is accurate.
+I use Claude (Anthropic) as an assistant during the project. This is the general
+picture of how, and I will keep it up to date if the way I use it changes.
 
-| Date | What it was used for | How I checked it | What I changed |
-|---|---|---|---|
-| 2026-10-11 | Draft of the project skeleton (folders, starter modules, sample data, starter tests) and a first version of this README | Ran `python main.py` and `pytest`, read through every file | Rewrote the README in my own words, adjusted the roadmap and structure |
-| 2026-10-12 | Phase 1 draft: class skeletons, decision log, requirements draft, diagrams (Graphviz) and the empty report structure with guidance comments | Ran the tests (15 pass), checked the diagrams visually | TODO: write what I changed after my review |
+**What I use it for**
 
-I stay responsible for all design decisions and for everything in the submission.
+- Planning and structure: breaking the specification into phases, the structure of this
+  README, and the outline of the report with guidance comments.
+- Code: first drafts of the project skeleton, the class design, the data generation
+  script and the tests.
+- Illustrations: the architecture diagram and the class diagram (Graphviz sources are
+  in `docs/diagrams/`).
+- General questions and discussing design alternatives (for example which
+  metaprogramming technique to use).
+
+**How I check it**
+
+I run the program and the tests, read through the generated code and documents, check
+the diagrams against the code, and compare everything with the specification. The data
+generator is checked with tests, and the generated dataset is checked against the
+summary statistics in `docs/dataset.md`.
+
+**What is mine**
+
+I have read and agreed with the design decisions in `docs/decisions.md`, and I edit
+the README and the other documents myself. I write the report text myself. I stay
+responsible for all design decisions and for everything in the submission.
 
 ---
 

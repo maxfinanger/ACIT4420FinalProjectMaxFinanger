@@ -82,7 +82,7 @@ from here. Decisions marked "preliminary" will be confirmed in the phase named.
   something that can be traded off against other criteria.
 
 ## D7. Invalid records are rejected and logged, not corrected (preliminary, finalise in Phase 3)
-- **Status:** Decided (preliminary, confirmed in Phase 3)
+- **Status:** Decided (confirmed in Phase 3)
 - **Decision:** A record that fails validation is skipped, written to the log
   with its id and reason, and counted. The program continues with the valid rows.
   If a whole file is missing, or the header is wrong, the program stops with a `DataFileError`.
@@ -90,6 +90,14 @@ from here. Decisions marked "preliminary" will be confirmed in the phase named.
 - **Reason:** Guessing a correction can silently produce a wrong offer, and a
   traveller could then book something that does not exist. Stopping on one bad
   row would make the program fragile.
+- **Implemented (Phase 3):** `load_offers` returns a `LoadResult` with the accepted
+  offers and a list of `RejectedRecord`s (row number, offer id, category, message).
+  Each rejection is also written to `logs/busbidder.log` as a warning. "Set aside"
+  therefore means: kept in the result and the log for review, never used in
+  filtering or ranking. The only tolerated clean-ups are harmless ones: surrounding
+  whitespace is stripped, yes/no is case-insensitive, and a UTF-8 BOM is ignored.
+  A repeated offer id is rejected (first valid row wins). Problems with a whole file
+  (missing, empty, wrong header, unreadable) raise `DataFileError` instead.
 
 ## D8. Command-line interface first
 - **Status:** Decided
@@ -142,6 +150,26 @@ from here. Decisions marked "preliminary" will be confirmed in the phase named.
   cheaper non-changeable fare and a more expensive flexible fare is exactly that trade-off. One
   row per fare keeps the filtering and ranking code simple (an offer is one thing to score).
   The simplification is that fare types do not share seats on the same bus.
+
+## D13. Two-step validation, and where regular expressions are (not) used
+- **Status:** Decided
+- **Decision:** `loader.build_offer` converts text to types and reports format errors
+  (bad id, date, time, number, yes/no). `validation.validate_offer` then checks the
+  business rules on a typed `Offer` (ranges, known company and destination, arrival
+  after departure, maximum duration). Both raise `ValidationError` with a `category`.
+  Regular expressions are used for: offer id (`OF-0001`), booking reference
+  (`BB-20260712-A1B2C3`), date (`YYYY-MM-DD`) and time (`HH:MM`). They are NOT used
+  for numbers, names or yes/no values.
+- **Alternatives:** One big validation function on raw text; a regex for every field;
+  a validation library.
+- **Reason:** Splitting format from meaning keeps each function short and lets the
+  rules be tested directly on `Offer` objects (including boundaries such as exactly
+  24 hours). A regex fits fixed-format identifiers and timestamps, but for numbers it
+  is the wrong tool: `float()` already parses them, and "price above 0" or "rating
+  between 0 and 5" are comparisons. The spec asks for regexes only "where genuinely
+  suitable", so the list above is deliberately short.
+- **Found by testing:** the first version used `^...$`, but `$` also matches before a
+  trailing newline, so `"OF-0001\n"` was accepted. The patterns now use `\A...\Z`.
 
 ---
 

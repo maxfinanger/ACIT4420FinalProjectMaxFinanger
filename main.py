@@ -1,5 +1,5 @@
-"""Entry point:  python main.py"""
+"""Entry point:  python main.py   (optional: --offers path/to/file.csv)"""
 from busbidder.cli import run
 
 if __name__ == "__main__":
-    run()
+    raise SystemExit(run())

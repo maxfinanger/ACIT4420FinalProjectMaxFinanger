@@ -10,7 +10,16 @@ class DataFileError(BusBidderError):
 
 
 class ValidationError(BusBidderError):
-    """A record has a missing, inconsistent or impossible value."""
+    """A record has a missing, inconsistent or impossible value.
+
+    `category` is a short machine-readable name (e.g. "negative_price"), the
+    same names that are used in data/offers_invalid_expected.json.
+    """
+
+    def __init__(self, category: str, message: str):
+        super().__init__(f"{category}: {message}")
+        self.category = category
+        self.message = message
 
 
 class WeightError(BusBidderError):
