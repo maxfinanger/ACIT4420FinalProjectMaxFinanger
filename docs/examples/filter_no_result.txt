@@ -1,0 +1,33 @@
+=== BusBidder Spain ===
+Companies    : 5
+Destinations : 15
+Profiles     : budget_traveller, business_traveller, flexible_tourist
+Offers       : 1497 loaded, 0 rejected (data/offers.csv)
+
+Request: Madrid to Toledo, 2026-07-12 to 2026-07-14, profile budget_traveller
+
+HARD constraints (an offer that breaks one is removed before ranking):
+  - destination: Toledo
+  - departure between 2026-07-12 and 2026-07-14 (both days included)
+  - at least 1 seat available
+  - price at most EUR 3.00
+
+SOFT preferences (only affect the score, never remove an offer):
+  - price: Lower price is better (weight 0.55)
+  - duration: Shorter journey is better (weight 0.15)
+  - departure: Departure close to the preferred time is better (weight 0.10)
+  - flexibility: Changeable / refundable fares are rewarded (weight 0.20)
+  - preferred departure time: 09:00
+  - profile: budget_traveller
+  (price is both: the budget is hard, and within it a lower price scores higher)
+
+Filtering 1497 offers (each removed offer is counted once, under the first rule it breaks):
+  removed  1418   wrong destination (wanted Toledo)
+  removed    30   departs outside 2026-07-12 to 2026-07-14
+  removed     0   no seats left
+  removed    49   over budget (max EUR 3.00)
+Remaining: 0 offers
+No offer meets every hard constraint.
+Hint: relaxing only 'over budget (max EUR 3.00)' would give 49 offer(s).
+
+(Filtering done. Next: Phase 5, weighted ranking. See README.)

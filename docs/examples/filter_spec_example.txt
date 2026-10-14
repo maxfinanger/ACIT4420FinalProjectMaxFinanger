@@ -1,0 +1,47 @@
+=== BusBidder Spain ===
+Companies    : 5
+Destinations : 15
+Profiles     : budget_traveller, business_traveller, flexible_tourist
+Offers       : 1497 loaded, 0 rejected (data/offers.csv)
+
+Request: Madrid to Malaga, 2026-07-12 to 2026-07-14, profile budget_traveller
+
+HARD constraints (an offer that breaks one is removed before ranking):
+  - destination: Malaga
+  - departure between 2026-07-12 and 2026-07-14 (both days included)
+  - at least 1 seat available
+  - price at most EUR 50.00
+  - at most 1 transfer(s)
+  - ticket must be changeable
+
+SOFT preferences (only affect the score, never remove an offer):
+  - price: Lower price is better (weight 0.55)
+  - duration: Shorter journey is better (weight 0.15)
+  - departure: Departure close to the preferred time is better (weight 0.10)
+  - flexibility: Changeable / refundable fares are rewarded (weight 0.20)
+  - preferred departure time: 09:00
+  - profile: budget_traveller
+  (price is both: the budget is hard, and within it a lower price scores higher)
+
+Filtering 1497 offers (each removed offer is counted once, under the first rule it breaks):
+  removed  1373   wrong destination (wanted Malaga)
+  removed    49   departs outside 2026-07-12 to 2026-07-14
+  removed     0   no seats left
+  removed     9   over budget (max EUR 50.00)
+  removed     0   too many transfers (max 1)
+  removed    19   ticket is not changeable
+Remaining: 47 offers
+
+Remaining offers, NOT ranked yet (first 10 by departure):
+  OF-0421  Camino Express  2026-07-12 06:30->12:50  EUR  44.50  0 transfer(s)  Standard changeable
+  OF-0424  CostaLink       2026-07-12 07:45->15:30  EUR  38.00  0 transfer(s)  Standard changeable
+  OF-0423  CostaLink       2026-07-12 07:45->15:30  EUR  45.50  0 transfer(s)  Flex     changeable
+  OF-0426  VerdeBus        2026-07-12 08:00->15:30  EUR  40.00  0 transfer(s)  Standard changeable
+  OF-0425  VerdeBus        2026-07-12 08:00->15:30  EUR  48.50  0 transfer(s)  Flex     changeable
+  OF-0428  Camino Express  2026-07-12 08:30->15:05  EUR  43.50  0 transfer(s)  Standard changeable
+  OF-0431  CostaLink       2026-07-12 10:15->17:35  EUR  38.50  0 transfer(s)  Standard changeable
+  OF-0430  CostaLink       2026-07-12 10:15->17:35  EUR  49.00  0 transfer(s)  Flex     changeable
+  OF-0433  VerdeBus        2026-07-12 12:30->20:35  EUR  38.00  1 transfer(s)  Standard changeable
+  OF-0432  VerdeBus        2026-07-12 12:30->20:35  EUR  49.00  1 transfer(s)  Flex     changeable
+
+(Filtering done. Next: Phase 5, weighted ranking. See README.)

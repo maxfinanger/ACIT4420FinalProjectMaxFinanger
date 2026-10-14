@@ -68,8 +68,10 @@ class TravelRequest:
     date_from: date
     date_to: date
     max_budget: float
-    max_transfers: int = 99
+    max_transfers: int | None = None          # None = no limit
     require_changeable: bool = False
+    min_luggage_kg: int = 0                   # 0 = no requirement
+    max_duration_minutes: int | None = None   # None = no limit (duration is then soft only)
     # --- soft preferences (used in ranking only) ---
     preferred_departure: time = time(9, 0)
     profile: str = "budget_traveller"

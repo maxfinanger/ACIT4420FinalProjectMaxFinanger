@@ -16,7 +16,7 @@ and then comparing values, which a regex cannot do (decision D13).
 import re
 
 from .exceptions import ValidationError
-from .models import Offer
+from .models import Offer, TravelRequest
 
 # ---- fixed-format patterns -------------------------------------------------
 # \A ... \Z (not ^ ... $) because $ also matches just before a trailing newline,
@@ -83,3 +83,23 @@ def validate_offer(offer: Offer, known_destinations, known_companies) -> None:
         raise ValidationError("impossible_duration",
                               f"journey takes {offer.duration_minutes} min, "
                               f"more than the maximum {MAX_DURATION_MINUTES}")
+
+
+def validate_request(request: TravelRequest, known_destinations=None) -> None:
+    """Check the traveller's request before filtering (garbage in, clear error out).
+    If `known_destinations` is given, the destination must be one of them."""
+    if request.date_from > request.date_to:
+        raise ValidationError("invalid_window",
+                              f"travel window starts {request.date_from} after it ends {request.date_to}")
+    if request.max_budget <= 0:
+        raise ValidationError("invalid_budget", f"budget must be above 0, got {request.max_budget}")
+    if request.max_transfers is not None and request.max_transfers < 0:
+        raise ValidationError("invalid_transfers",
+                              f"maximum transfers must be 0 or more, got {request.max_transfers}")
+    if request.max_duration_minutes is not None and request.max_duration_minutes <= 0:
+        raise ValidationError("invalid_duration_limit",
+                              f"maximum duration must be above 0, got {request.max_duration_minutes}")
+    if request.min_luggage_kg < 0:
+        raise ValidationError("invalid_luggage", f"luggage must be 0 or more, got {request.min_luggage_kg}")
+    if known_destinations is not None and request.destination not in known_destinations:
+        raise ValidationError("unknown_destination", f"unknown destination '{request.destination}'")

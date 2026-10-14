@@ -42,7 +42,12 @@ python scripts/generate_data.py
 
 # see the validation reject the deliberately broken test file
 python main.py --offers data/offers_invalid.csv
+
+# try the hard-constraint filter with the example request from the spec
+python main.py --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 50 --max-transfers 1 --changeable
 ```
+
+`python main.py --help` lists all request options (`--max-hours`, `--min-luggage`, `--profile`, ...).
 
 All commands need to be run from the project root, because the data and config
 paths are relative. The generated data files are already in the repository, so the
@@ -50,7 +55,8 @@ generator only has to be run if I change it.
 
 At the moment `main.py` loads the companies, destinations, profiles and offers,
 validates the offers and prints a short summary (plus the rejected rows, if any).
-Filtering, ranking and booking come in the next phases.
+If a request is given (`--destination ...`) it also applies the hard constraints and
+shows what was removed and why. Ranking and booking come in the next phases.
 
 Logs are written to `logs/busbidder.log` when the program runs. Every rejected
 offer record is logged there with its row number, id and reason.
@@ -93,6 +99,7 @@ busbidder/
 │   ├── test_basics.py
 │   ├── test_design.py       # composition, constraints, criteria registry
 │   ├── test_dataset.py      # the generated dataset and the invalid test file
+│   ├── test_filtering.py    # hard constraints, filter report, request validation, CLI
 │   ├── test_validation.py   # validation rules, boundaries, regex patterns
 │   └── test_loader.py       # conversion, file errors, rejected rows, logging
 ├── logs/
@@ -101,6 +108,8 @@ busbidder/
 │   ├── decisions.md         # design decisions: decision, alternatives, reason
 │   ├── dataset.md           # how the dataset is built and how the companies differ
 │   ├── validation.md        # validation rules, error categories, policy
+│   ├── filtering.md         # hard vs soft table, how the filter reports, limitations
+│   ├── examples/            # saved program outputs used as evidence in the report
 │   ├── architecture.png     # components and flow of information
 │   ├── class_diagram.png    # main classes and their relations
 │   └── diagrams/            # Graphviz sources for the two diagrams
@@ -139,7 +148,7 @@ The main idea is the split between hard constraints and soft preferences.
 Hard constraints (for example destination, budget and travel window) remove an
 offer completely before ranking. Soft preferences (for example preferred
 departure time) only affect the score. Which condition goes where is a design
-decision I still have to make and justify, see Phase 4.
+decision, which is justified in `docs/filtering.md` (D6).
 
 Design choices from Phase 1 (reasons and alternatives are in `docs/decisions.md`):
 
@@ -157,7 +166,7 @@ Design choices from Phase 1 (reasons and alternatives are in `docs/decisions.md`
 
 Tests are in `tests/` and run with `python -m pytest -v`.
 
-Right now there are 112 tests. They cover:
+Right now there are 163 tests. They cover:
 
 - **Design:** fare conditions, the abstract constraint, the budget boundary, the
   criteria registry, overnight durations, weight validation.
@@ -168,6 +177,10 @@ Right now there are 112 tests. They cover:
 - **Loading:** type conversion, missing/empty/unreadable files, wrong header, duplicate ids,
   logging, and the real file (1497 accepted, 0 rejected). The invalid file is checked
   row by row against `data/offers_invalid_expected.json`.
+- **Filtering:** every hard constraint with boundary values (budget 49.99 / 50.00 / 50.01,
+  edge days of the window, 390 vs 391 minutes incl. overnight, 19 vs 20 kg luggage), inactive
+  constraints, the removal counts, empty and impossible requests, invalid requests, the spec
+  example on the real data checked against an independent calculation (47 offers), and the CLI.
 
 As each phase is finished I will add tests for normal input, invalid input,
 missing data and boundary cases, as the spec requires. Hand-calculated expected
@@ -221,13 +234,14 @@ I commit after every phase.
 - [x] Tests: normal, invalid, missing file, missing field, boundary values
       (expected results for every row of `offers_invalid.csv` are in `offers_invalid_expected.json`)
 
-### [ ] Phase 4: Hard constraints
-- [ ] Decide which conditions are hard (must hold) and which are soft (preference)
-- [ ] Implement `filter_offers()` for destination, travel window, budget, seats,
-      max transfers and mandatory flexibility
-- [ ] Make the hard/soft split visible to the user (e.g. "removed: 4 over budget")
-- [ ] Handle the case where no offers survive
-- [ ] Tests including boundaries (price exactly at budget, date exactly on the window edge)
+### [x] Phase 4: Hard constraints
+- [x] Decide which conditions are hard (must hold) and which are soft (preference)
+      (table in `docs/filtering.md`, decision D6)
+- [x] Implement `filter_offers()` for destination, travel window, budget, seats,
+      max transfers and mandatory flexibility (plus luggage and maximum duration when set)
+- [x] Make the hard/soft split visible to the user (e.g. "removed: 4 over budget")
+- [x] Handle the case where no offers survive (message and a hint about what to relax)
+- [x] Tests including boundaries (price exactly at budget, date exactly on the window edge)
 
 ### [ ] Phase 5: Weighted ranking 
 - [ ] Normalise each criterion to a 0-100 scale

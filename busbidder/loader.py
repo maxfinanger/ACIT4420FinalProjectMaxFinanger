@@ -113,7 +113,7 @@ def load_profiles(path: str = "config/profiles.json") -> dict:
 # ---------------------------------------------------------------------------
 # Row-level conversion (errors here raise ValidationError)
 # ---------------------------------------------------------------------------
-def _parse_date(text: str, name: str) -> date:
+def parse_date(text: str, name: str) -> date:
     if not DATE_PATTERN.match(text):
         raise ValidationError("invalid_date", f"{name} must be YYYY-MM-DD, got {text!r}")
     try:
@@ -122,7 +122,7 @@ def _parse_date(text: str, name: str) -> date:
         raise ValidationError("invalid_date", f"{name} is not a real date: {text!r}") from None
 
 
-def _parse_time(text: str, name: str) -> time:
+def parse_time(text: str, name: str) -> time:
     if not TIME_PATTERN.match(text):
         raise ValidationError("invalid_time", f"{name} must be HH:MM (00:00-23:59), got {text!r}")
     return time(int(text[:2]), int(text[3:]))
@@ -162,10 +162,10 @@ def build_offer(row: dict, known_destinations, known_companies) -> Offer:
     if not OFFER_ID_PATTERN.match(f["offer_id"]):
         raise ValidationError("bad_offer_id", f"offer_id must look like OF-0001, got {f['offer_id']!r}")
 
-    travel_date = _parse_date(f["travel_date"], "travel_date")
-    arrival_date = _parse_date(f["arrival_date"], "arrival_date")
-    departure_time = _parse_time(f["departure_time"], "departure_time")
-    arrival_time = _parse_time(f["arrival_time"], "arrival_time")
+    travel_date = parse_date(f["travel_date"], "travel_date")
+    arrival_date = parse_date(f["arrival_date"], "arrival_date")
+    departure_time = parse_time(f["departure_time"], "departure_time")
+    arrival_time = parse_time(f["arrival_time"], "arrival_time")
     price = _parse_float(f["price"], "price")
     transfers = _parse_int(f["transfers"], "transfers")
     luggage_kg = _parse_int(f["luggage_kg"], "luggage_kg")

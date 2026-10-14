@@ -1,0 +1,26 @@
+=== BusBidder Spain ===
+Companies    : 5
+Destinations : 15
+Profiles     : budget_traveller, business_traveller, flexible_tourist
+Offers       : 3 loaded, 17 rejected (data/offers_invalid.csv)
+
+Rejected records (details in logs/busbidder.log):
+  row   2  OF-9002   negative_price: price must be above 0, got -5.0
+  row   3  OF-9003   unknown_destination: unknown destination 'Atlantis'
+  row   4  OF-9004   unknown_company: unknown company 'GhostBus'
+  row   5  OF-9005   invalid_date: travel_date is not a real date: '2026-02-30'
+  row   6  OF-9006   arrival_before_departure: arrival 2026-07-12 06:00 is not after departure 2026-07-12 08:00
+  row   7  OF-9007   rating_out_of_range: rating must be 0-5, got 6.2
+  row   8  OF-9008   rating_out_of_range: rating must be 0-5, got -0.5
+  row   9  OF-9009   no_seats: seats_available must be at least 1, got 0
+  row  10  OF-9010   missing_field: required field 'price' is empty
+  row  11  OF-9011   invalid_number: price must be a number, got 'cheap'
+  row  12  BUS-12    bad_offer_id: offer_id must look like OF-0001, got 'BUS-12'
+  row  13  OF-9013   invalid_time: departure_time must be HH:MM (00:00-23:59), got '25:61'
+  row  14  OF-9014   negative_transfers: transfers must not be negative, got -1
+  row  15  OF-9015   invalid_boolean: changeable must be yes or no, got 'maybe'
+  row  16  OF-9001   duplicate_id: offer_id OF-9001 already loaded
+  row  17  OF-9017   malformed_row: row has missing or extra columns
+  row  18  OF-9018   impossible_duration: journey takes 11910 min, more than the maximum 1440
+
+Tip: add --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 50 to try the hard-constraint filter.
