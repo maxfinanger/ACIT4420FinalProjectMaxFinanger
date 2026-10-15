@@ -1,0 +1,11 @@
+{
+  "_comment": "Parameters of the scoring model (docs/scoring.md). Changing a value changes the ranking, so keep a copy when you report results.",
+  "price":        {"min_span_eur": 5.0},
+  "duration":     {"min_span_minutes": 60},
+  "emissions":    {"min_span_kg": 2.0},
+  "relative_scale": {"outlier_cap_factor": 2.0},
+  "departure":    {"tolerance_minutes": 360},
+  "transfers":    {"max_reference": 3},
+  "flexibility":  {"none": 0, "changeable": 60, "refundable": 40, "changeable_and_refundable": 100},
+  "missing_value_score": 0
+}

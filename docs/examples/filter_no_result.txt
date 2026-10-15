@@ -1,7 +1,7 @@
 === BusBidder Spain ===
 Companies    : 5
 Destinations : 15
-Profiles     : budget_traveller, business_traveller, flexible_tourist
+Profiles     : budget_traveller, business_traveller, flexible_tourist, environment_focused
 Offers       : 1497 loaded, 0 rejected (data/offers.csv)
 
 Request: Madrid to Toledo, 2026-07-12 to 2026-07-14, profile budget_traveller
@@ -30,4 +30,4 @@ Remaining: 0 offers
 No offer meets every hard constraint.
 Hint: relaxing only 'over budget (max EUR 3.00)' would give 49 offer(s).
 
-(Filtering done. Next: Phase 5, weighted ranking. See README.)
+(Filtering and ranking done. Next: Phase 6, explanation and profile comparison. See README.)

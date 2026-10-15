@@ -32,3 +32,7 @@ class BookingError(BusBidderError):
 
 class UnknownCriterionError(WeightError):
     """Weights refer to a scoring criterion that is not registered."""
+
+
+class ScoringError(BusBidderError):
+    """A criterion returned a value that is not a score between 0 and 100."""

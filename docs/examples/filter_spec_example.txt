@@ -1,7 +1,7 @@
 === BusBidder Spain ===
 Companies    : 5
 Destinations : 15
-Profiles     : budget_traveller, business_traveller, flexible_tourist
+Profiles     : budget_traveller, business_traveller, flexible_tourist, environment_focused
 Offers       : 1497 loaded, 0 rejected (data/offers.csv)
 
 Request: Madrid to Malaga, 2026-07-12 to 2026-07-14, profile budget_traveller
@@ -32,16 +32,25 @@ Filtering 1497 offers (each removed offer is counted once, under the first rule 
   removed    19   ticket is not changeable
 Remaining: 47 offers
 
-Remaining offers, NOT ranked yet (first 10 by departure):
-  OF-0421  Camino Express  2026-07-12 06:30->12:50  EUR  44.50  0 transfer(s)  Standard changeable
-  OF-0424  CostaLink       2026-07-12 07:45->15:30  EUR  38.00  0 transfer(s)  Standard changeable
-  OF-0423  CostaLink       2026-07-12 07:45->15:30  EUR  45.50  0 transfer(s)  Flex     changeable
-  OF-0426  VerdeBus        2026-07-12 08:00->15:30  EUR  40.00  0 transfer(s)  Standard changeable
-  OF-0425  VerdeBus        2026-07-12 08:00->15:30  EUR  48.50  0 transfer(s)  Flex     changeable
-  OF-0428  Camino Express  2026-07-12 08:30->15:05  EUR  43.50  0 transfer(s)  Standard changeable
-  OF-0431  CostaLink       2026-07-12 10:15->17:35  EUR  38.50  0 transfer(s)  Standard changeable
-  OF-0430  CostaLink       2026-07-12 10:15->17:35  EUR  49.00  0 transfer(s)  Flex     changeable
-  OF-0433  VerdeBus        2026-07-12 12:30->20:35  EUR  38.00  1 transfer(s)  Standard changeable
-  OF-0432  VerdeBus        2026-07-12 12:30->20:35  EUR  49.00  1 transfer(s)  Flex     changeable
+RANKING (47 offers, best first). Scores are 0-100, higher is better; price, duration and
+emissions are scored relative to these offers, see docs/scoring.md.
+  #  Offer    Company         Departure       EUR    Dur Tr Fare     |  price durati depart flexib | TOTAL
+  1  OF-1025  SolRuta         14 Jul 07:00  31.50   8h35  0 Standard |  100.0   20.6   66.7   60.0 |  76.8
+  2  OF-0723  SolRuta         13 Jul 07:00  33.50   8h05  0 Standard |   88.6   38.2   66.7   60.0 |  73.1
+  3  OF-0726  CostaLink       13 Jul 07:45  35.00   7h30  0 Standard |   80.0   58.8   79.2   60.0 |  72.7
+  4  OF-1035  CostaLink       14 Jul 10:15  35.50   7h20  0 Standard |   77.1   64.7   79.2   60.0 |  72.1
+  5  OF-1042  SolRuta         14 Jul 15:30  31.50   8h25  0 Standard |  100.0   26.5    0.0   60.0 |  71.0
+  6  OF-0736  CostaLink       13 Jul 13:30  34.50   7h20  0 Standard |   82.9   64.7   25.0   60.0 |  69.8
+  7  OF-0744  NocheVia        13 Jul 23:55  34.50   7h00  0 Standard |   82.9   76.5    0.0   60.0 |  69.0
+  8  OF-1046  NocheVia        14 Jul 21:00  34.00   7h20  0 Standard |   85.7   64.7    0.0   60.0 |  68.8
+  9  OF-1037  VerdeBus        14 Jul 12:30  35.50   7h35  1 Standard |   77.1   55.9   41.7   60.0 |  67.0
+ 10  OF-0731  CostaLink       13 Jul 10:15  36.50   7h50  0 Standard |   71.4   47.1   79.2   60.0 |  66.3
+... 37 more offers not shown (use --top)
 
-(Filtering done. Next: Phase 5, weighted ranking. See README.)
+Weight vs. real influence on the order (weight x spread of the scores):
+  price        weight  55%   influence  60%
+  duration     weight  15%   influence  13%
+  departure    weight  10%   influence  13%
+  flexibility  weight  20%   influence  14%
+
+(Filtering and ranking done. Next: Phase 6, explanation and profile comparison. See README.)

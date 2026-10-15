@@ -4,6 +4,7 @@ The CLI talks to this class and not to every module separately.
 """
 from .filtering import FilterResult, filter_offers
 from .validation import validate_request
+from .exceptions import ValidationError
 from .models import Company, Destination, Offer, RankedOffer, TravelRequest
 from .ranking import rank_offers
 
@@ -25,5 +26,8 @@ class Marketplace:
                weights: dict | None = None) -> tuple[FilterResult, list[RankedOffer]]:
         """Apply hard constraints, then rank what is left with the profile's weights."""
         result = self.filter(request)
-        weights = weights or self.profiles[request.profile]
+        if weights is None:
+            if request.profile not in self.profiles:
+                raise ValidationError("unknown_profile", f"unknown profile '{request.profile}'")
+            weights = self.profiles[request.profile]
         return result, rank_offers(result.kept, request, weights)

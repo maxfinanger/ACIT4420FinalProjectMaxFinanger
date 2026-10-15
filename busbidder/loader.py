@@ -17,6 +17,7 @@ from typing import Iterable
 
 from .exceptions import DataFileError, ValidationError
 from .models import Company, Destination, FareConditions, Offer
+from .scoring_config import ScoringConfig
 from .validation import (DATE_PATTERN, OFFER_ID_PATTERN, REQUIRED_FIELDS, TIME_PATTERN,
                          check_row_structure, validate_offer)
 
@@ -108,6 +109,19 @@ def load_profiles(path: str = "config/profiles.json") -> dict:
     if not isinstance(data, dict):
         _fail(f"{path} must contain a JSON object of profiles")
     return {k: v for k, v in data.items() if not k.startswith("_")}
+
+
+def load_scoring_config(path: str = "config/scoring.json") -> ScoringConfig:
+    p = Path(path)
+    if not p.exists():
+        _fail(f"File not found: {path}")
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            raise ValueError("must contain a JSON object")
+        return ScoringConfig.from_dict(data)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as err:
+        _fail(f"Could not read {path}: {err}")
 
 
 # ---------------------------------------------------------------------------

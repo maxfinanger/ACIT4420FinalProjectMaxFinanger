@@ -40,3 +40,12 @@ def good_row():
         "price": "32.50", "transfers": "1", "luggage_kg": "10", "changeable": "no",
         "refundable": "no", "seats_available": "12", "rating": "3.9", "emissions_kg": "18.2",
     }
+
+
+@pytest.fixture(autouse=True)
+def _reset_scoring_config():
+    """The scoring parameters are module-level state, so every test starts from the defaults."""
+    from busbidder.scoring_config import reset_config
+    reset_config()
+    yield
+    reset_config()

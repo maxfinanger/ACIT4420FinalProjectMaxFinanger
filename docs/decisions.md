@@ -200,12 +200,46 @@ from here. Decisions marked "preliminary" will be confirmed in the phase named.
 - **Trade-off:** the counts depend on the order, so a constraint late in the list can look
   less important than it is. The near-miss numbers (order independent) give the other view.
 
+## D15. Normalisation: relative scales with a minimum spread, absolute scales where there is a reference
+- **Status:** Decided
+- **Decision:** All criteria give 0-100, higher is better. Price, duration and emissions are
+  RELATIVE: the best offer in the list gets 100 and the score falls linearly to 0 over the spread of
+  the values, but over at least a "meaningful difference" (EUR 5, 60 min, 2 kg). Departure,
+  flexibility, transfers and rating are ABSOLUTE: they have a natural reference (the preferred time, the fare
+  category, a direct bus, 5 stars). The parameters are in `config/scoring.json`.
+- **Alternatives:**
+  - Plain min-max for everything: simple, but a EUR 1 difference between two offers becomes 100 points, and
+    all-equal lists divide by zero.
+  - Fixed reference scales for everything (e.g. price score = 100 * (1 - price / budget)): no rank reversal and
+    comparable between searches, but the scores bunch together when the budget is generous, so price would
+    quietly lose influence.
+  - z-scores or rank-based scores: harder to explain to a traveller.
+- **Reason:** Price and duration have no natural "good" level, so comparing with the other offers is the only
+  meaningful scale, and using the full range makes the weights mean what they say. The minimum spread keeps tiny
+  differences small. Where a reference exists (the traveller's own preferred time), using it is more honest than
+  comparing offers with each other.
+- **Known cost:** rank reversal (an offer that is not at the top can change the order of the ones above it),
+  shown by a test and discussed in `docs/scoring.md`.
+
+## D16. Ties, missing values and extreme values
+- **Status:** Decided
+- **Decision:**
+  - Ties are defined at the precision shown (2 decimals) and broken by lower price, shorter journey, earlier
+    departure, offer id. Ranks run 1..n without gaps, and the offers that needed a tie-break are marked.
+  - A missing criterion value (only emissions can be missing) gets `missing_value_score` = 0.
+  - A value worse than 2x the median counts as the worst value, so an outlier cannot stretch a relative scale.
+  - A criterion that returns anything but a finite number from 0 to 100 raises `ScoringError`.
+- **Alternatives:** Shared ranks for ties; a neutral score (50) or dropping the criterion for offers with missing
+  data; winsorising at percentiles.
+- **Reason:** A strict order is easier to explain and to book from, and the tie-break is the traveller-friendly
+  one (cheaper, faster, earlier). Scoring "unknown" as worst avoids rewarding missing data, which would let a company
+  gain by not reporting emissions. A median-based cap works for any list size, where percentiles are unstable with a
+  handful of offers.
+
 ---
 
-## Still to decide (not in the list above)
+## Still to decide
 
-- Exact normalisation method for each criterion (Phase 5): min-max, fixed
-  reference ranges, or a mix? How do outliers affect it?
-- Tie-breaking rule (Phase 5).
 - Booking reference format (Phase 7). Currently `BB-YYYYMMDD-XXXXXX`.
-- Which extra criteria to add (Phase 5).
+- How the explanation chooses which advantages and disadvantages to mention (Phase 6).
+- Whether to test how sensitive the ranking is to the numbers in `config/scoring.json` (Phase 9, probably yes).

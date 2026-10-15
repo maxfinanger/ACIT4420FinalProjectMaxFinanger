@@ -43,11 +43,16 @@ python scripts/generate_data.py
 # see the validation reject the deliberately broken test file
 python main.py --offers data/offers_invalid.csv
 
-# try the hard-constraint filter with the example request from the spec
+# filter and rank with the example request from the spec
 python main.py --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 50 --max-transfers 1 --changeable
+
+# same request for another traveller profile, or with your own weights
+python main.py --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 50 --max-transfers 1 --changeable --profile business_traveller --preferred-departure 08:00
+python main.py --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 50 --weights price=40,duration=25,departure=15,flexibility=20
 ```
 
-`python main.py --help` lists all request options (`--max-hours`, `--min-luggage`, `--profile`, ...).
+`python main.py --help` lists all request options (`--max-hours`, `--min-luggage`, `--profile`, `--weights`, `--top`, ...).
+Profiles: `budget_traveller`, `business_traveller`, `flexible_tourist`, `environment_focused`.
 
 All commands need to be run from the project root, because the data and config
 paths are relative. The generated data files are already in the repository, so the
@@ -55,8 +60,10 @@ generator only has to be run if I change it.
 
 At the moment `main.py` loads the companies, destinations, profiles and offers,
 validates the offers and prints a short summary (plus the rejected rows, if any).
-If a request is given (`--destination ...`) it also applies the hard constraints and
-shows what was removed and why. Ranking and booking come in the next phases.
+If a request is given (`--destination ...`) it also applies the hard constraints, shows
+what was removed and why, and ranks the rest with the weighted model (score of every
+criterion, total, and how much each criterion really influences the order).
+Explanations and booking come in the next phases.
 
 Logs are written to `logs/busbidder.log` when the program runs. Every rejected
 offer record is logged there with its row number, id and reason.
@@ -71,7 +78,8 @@ busbidder/
 ├── README.md
 ├── requirements.txt
 ├── config/
-│   └── profiles.json        # traveller profiles and their ranking weights
+│   ├── profiles.json        # 4 traveller profiles and their ranking weights
+│   └── scoring.json         # parameters of the scoring model
 ├── data/
 │   ├── companies.csv        # the 5 companies
 │   ├── destinations.csv     # the 15 destinations
@@ -85,12 +93,13 @@ busbidder/
 │   ├── models.py            # dataclasses: Company, Offer, TravelRequest, Booking
 │   ├── exceptions.py        # custom exception hierarchy
 │   ├── log_setup.py         # logging to logs/busbidder.log
-│   ├── criteria.py          # scoring criteria registry (decorator) (Phase 1 design)
+│   ├── criteria.py          # scoring criteria, registered with a decorator
+│   ├── scoring_config.py    # parameters of the scoring model (config/scoring.json)
 │   ├── marketplace.py       # Marketplace: runs filter -> rank
 │   ├── loader.py            # file input, type conversion, LoadResult (Task 2)
 │   ├── validation.py        # business rules and regex patterns    (Task 2)
 │   ├── filtering.py         # hard-constraint filtering            (Task 3)
-│   ├── ranking.py           # weighted scoring                     (Section 5 in spec)
+│   ├── ranking.py           # weights, weighted ranking, ties, influence (Section 5 in spec)
 │   ├── explain.py           # "why is this ranked first?"          (Section 6 in spec)
 │   ├── booking.py           # simulated bookings                   (Section 6 in spec)
 │   └── cli.py               # command-line interface
@@ -100,6 +109,8 @@ busbidder/
 │   ├── test_design.py       # composition, constraints, criteria registry
 │   ├── test_dataset.py      # the generated dataset and the invalid test file
 │   ├── test_filtering.py    # hard constraints, filter report, request validation, CLI
+│   ├── test_ranking.py      # criteria, weights, ranking, ties, influence, CLI
+│   ├── test_scoring_config.py   # scoring parameters and their file
 │   ├── test_validation.py   # validation rules, boundaries, regex patterns
 │   └── test_loader.py       # conversion, file errors, rejected rows, logging
 ├── logs/
@@ -109,6 +120,7 @@ busbidder/
 │   ├── dataset.md           # how the dataset is built and how the companies differ
 │   ├── validation.md        # validation rules, error categories, policy
 │   ├── filtering.md         # hard vs soft table, how the filter reports, limitations
+│   ├── scoring.md           # the scoring model, worked example, design questions, limitations
 │   ├── examples/            # saved program outputs used as evidence in the report
 │   ├── architecture.png     # components and flow of information
 │   ├── class_diagram.png    # main classes and their relations
@@ -157,6 +169,9 @@ Design choices from Phase 1 (reasons and alternatives are in `docs/decisions.md`
   each one can both test an offer and explain why it was removed.
 - **Metaprogramming:** scoring criteria are registered with a `@register_criterion`
   decorator, so the weights in `profiles.json` can refer to criteria by name.
+- **Scoring (Phase 5):** every criterion gives 0-100 (higher is better). Price and duration are
+  scored relative to the other offers (with a minimum spread), the others against a fixed reference
+  (D15, `docs/scoring.md`).
 - **`Marketplace`** holds the data and runs the filter-then-rank pipeline, so the
   CLI only has to talk to one class.
 
@@ -166,7 +181,7 @@ Design choices from Phase 1 (reasons and alternatives are in `docs/decisions.md`
 
 Tests are in `tests/` and run with `python -m pytest -v`.
 
-Right now there are 163 tests. They cover:
+Right now there are 262 tests. They cover:
 
 - **Design:** fare conditions, the abstract constraint, the budget boundary, the
   criteria registry, overnight durations, weight validation.
@@ -181,6 +196,11 @@ Right now there are 163 tests. They cover:
   edge days of the window, 390 vs 391 minutes incl. overnight, 19 vs 20 kg luggage), inactive
   constraints, the removal counts, empty and impossible requests, invalid requests, the spec
   example on the real data checked against an independent calculation (47 offers), and the CLI.
+- **Ranking:** hand-calculated scores and totals, a different winner with other weights, all-equal
+  and single-offer cases (no division by zero), minimum spread, outlier cap, departure across midnight,
+  missing emissions, tie-breaking, order independence, invalid and percentage weights, a criterion
+  added without touching the ranker, the winner per profile on the real data, and a documented
+  rank-reversal example (known limitation).
 
 As each phase is finished I will add tests for normal input, invalid input,
 missing data and boundary cases, as the spec requires. Hand-calculated expected
@@ -243,17 +263,17 @@ I commit after every phase.
 - [x] Handle the case where no offers survive (message and a hint about what to relax)
 - [x] Tests including boundaries (price exactly at budget, date exactly on the window edge)
 
-### [ ] Phase 5: Weighted ranking 
-- [ ] Normalise each criterion to a 0-100 scale
+### [x] Phase 5: Weighted ranking 
+- [x] Normalise each criterion to a 0-100 scale (D15, `docs/scoring.md`)
   - price and duration: lower is better, so invert
   - departure convenience: based on distance from the preferred time
   - flexibility: categorical (e.g. none = 0, changeable = 60, changeable + refundable = 100)
-- [ ] Decide how to handle ties, missing values, extreme values, and the case
-      where all offers have the same value (division by zero)
-- [ ] Validate that weights sum to 1.0 (stub exists) and are not negative
-- [ ] Maybe add extra criteria (transfers, rating, emissions)
-- [ ] Return the score per criterion and the total score for every offer
-- [ ] Tests with hand-calculated expected scores on a tiny dataset
+- [x] Decide how to handle ties, missing values, extreme values, and the case
+      where all offers have the same value (division by zero) (D16)
+- [x] Validate that weights sum to 1.0 and are not negative (also unknown criteria; percentages accepted)
+- [x] Maybe add extra criteria (transfers, rating, emissions), used by a fourth profile `environment_focused`
+- [x] Return the score per criterion and the total score for every offer
+- [x] Tests with hand-calculated expected scores on a tiny dataset
 
 ### [ ] Phase 6: Explanation and traveller profiles 
 - [ ] Implement `explain_top_offer()`, generated from the data

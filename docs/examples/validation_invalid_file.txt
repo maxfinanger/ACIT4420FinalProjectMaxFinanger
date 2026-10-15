@@ -1,7 +1,7 @@
 === BusBidder Spain ===
 Companies    : 5
 Destinations : 15
-Profiles     : budget_traveller, business_traveller, flexible_tourist
+Profiles     : budget_traveller, business_traveller, flexible_tourist, environment_focused
 Offers       : 3 loaded, 17 rejected (data/offers_invalid.csv)
 
 Rejected records (details in logs/busbidder.log):
@@ -23,4 +23,4 @@ Rejected records (details in logs/busbidder.log):
   row  17  OF-9017   malformed_row: row has missing or extra columns
   row  18  OF-9018   impossible_duration: journey takes 11910 min, more than the maximum 1440
 
-Tip: add --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 50 to try the hard-constraint filter.
+Tip: add --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 50 to filter and rank offers.

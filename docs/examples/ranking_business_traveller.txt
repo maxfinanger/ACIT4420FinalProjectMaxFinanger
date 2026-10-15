@@ -1,0 +1,56 @@
+=== BusBidder Spain ===
+Companies    : 5
+Destinations : 15
+Profiles     : budget_traveller, business_traveller, flexible_tourist, environment_focused
+Offers       : 1497 loaded, 0 rejected (data/offers.csv)
+
+Request: Madrid to Malaga, 2026-07-12 to 2026-07-14, profile business_traveller
+
+HARD constraints (an offer that breaks one is removed before ranking):
+  - destination: Malaga
+  - departure between 2026-07-12 and 2026-07-14 (both days included)
+  - at least 1 seat available
+  - price at most EUR 50.00
+  - at most 1 transfer(s)
+  - ticket must be changeable
+
+SOFT preferences (only affect the score, never remove an offer):
+  - price: Lower price is better (weight 0.15)
+  - duration: Shorter journey is better (weight 0.40)
+  - departure: Departure close to the preferred time is better (weight 0.30)
+  - flexibility: Changeable / refundable fares are rewarded (weight 0.15)
+  - preferred departure time: 08:00
+  - profile: business_traveller
+  (price is both: the budget is hard, and within it a lower price scores higher)
+
+Filtering 1497 offers (each removed offer is counted once, under the first rule it breaks):
+  removed  1373   wrong destination (wanted Malaga)
+  removed    49   departs outside 2026-07-12 to 2026-07-14
+  removed     0   no seats left
+  removed     9   over budget (max EUR 50.00)
+  removed     0   too many transfers (max 1)
+  removed    19   ticket is not changeable
+Remaining: 47 offers
+
+RANKING (47 offers, best first). Scores are 0-100, higher is better; price, duration and
+emissions are scored relative to these offers, see docs/scoring.md.
+  #  Offer    Company         Departure       EUR    Dur Tr Fare     |  price durati depart flexib | TOTAL
+  1  OF-1032  Camino Express  14 Jul 08:30  40.00   6h35  0 Standard |   51.4   91.2   91.7   60.0 |  80.7
+  2  OF-0728  Camino Express  13 Jul 08:30  42.00   6h40  0 Standard |   40.0   88.2   91.7   60.0 |  77.8
+  3  OF-0428  Camino Express  12 Jul 08:30  43.50   6h35  0 Standard |   31.4   91.2   91.7   60.0 |  77.7
+  4  OF-0721  Camino Express  13 Jul 06:30  42.50   6h25  0 Standard |   37.1   97.1   75.0   60.0 |  75.9  (tie-break)
+  5  OF-1023  Camino Express  14 Jul 06:30  42.50   6h25  0 Standard |   37.1   97.1   75.0   60.0 |  75.9  (tie-break)
+  6  OF-0421  Camino Express  12 Jul 06:30  44.50   6h20  0 Standard |   25.7  100.0   75.0   60.0 |  75.4
+  7  OF-1030  VerdeBus        14 Jul 08:00  39.50   7h15  0 Standard |   54.3   67.6  100.0   60.0 |  74.2
+  8  OF-0725  CostaLink       13 Jul 07:45  41.50   7h30  0 Flex     |   42.9   58.8   95.8  100.0 |  73.7
+  9  OF-0726  CostaLink       13 Jul 07:45  35.00   7h30  0 Standard |   80.0   58.8   95.8   60.0 |  73.3
+ 10  OF-1029  VerdeBus        14 Jul 08:00  48.00   7h15  0 Flex     |    5.7   67.6  100.0  100.0 |  72.9
+... 37 more offers not shown (use --top)
+
+Weight vs. real influence on the order (weight x spread of the scores):
+  price        weight  15%   influence  15%
+  duration     weight  40%   influence  32%
+  departure    weight  30%   influence  43%
+  flexibility  weight  15%   influence  10%
+
+(Filtering and ranking done. Next: Phase 6, explanation and profile comparison. See README.)

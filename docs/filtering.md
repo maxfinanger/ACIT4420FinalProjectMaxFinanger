@@ -32,7 +32,7 @@ constraint is neither applied nor shown in the removal report.
 3. How many offers each rule removed, and how many remain.
 4. The remaining offers, explicitly marked *not ranked yet*.
 
-Saved outputs (reproducible, see commands in the files' names below):
+Saved outputs (reproducible). Since Phase 5 the same commands also show the ranking of the remaining offers (`docs/scoring.md`):
 
 | File | Command |
 |---|---|

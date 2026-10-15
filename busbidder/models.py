@@ -5,7 +5,7 @@ Design notes (see docs/decisions.md):
 - Composition: an Offer HAS-A FareConditions. A Booking stores a copy of the
   fare conditions that applied when it was made.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime, time
 
 
@@ -81,9 +81,11 @@ class TravelRequest:
 class RankedOffer:
     """One offer after ranking: kept together with the numbers behind its position."""
     offer: Offer
-    criterion_scores: dict[str, float]   # name -> 0-100
-    total_score: float
-    rank: int = 0
+    criterion_scores: dict[str, float]   # name -> 0-100, higher is always better
+    total_score: float                   # sum of weight * score, so also 0-100
+    rank: int = 0                        # 1 = best
+    contributions: dict[str, float] = field(default_factory=dict)   # name -> weight * score
+    tie_broken: bool = False             # same total (to 2 decimals) as a neighbour
 
 
 @dataclass
