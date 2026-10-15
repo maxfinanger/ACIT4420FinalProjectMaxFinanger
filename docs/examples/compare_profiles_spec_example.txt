@@ -1,0 +1,42 @@
+=== BusBidder Spain ===
+Companies    : 5
+Destinations : 15
+Profiles     : budget_traveller, business_traveller, flexible_tourist, environment_focused
+Offers       : 1497 loaded, 0 rejected (data/offers.csv)
+
+Request: Madrid to Malaga, 2026-07-12 to 2026-07-14, preferred departure 09:00
+
+HARD constraints (the same for every profile):
+  - destination: Malaga
+  - departure between 2026-07-12 and 2026-07-14 (both days included)
+  - at least 1 seat available
+  - price at most EUR 50.00
+  - at most 1 transfer(s)
+  - ticket must be changeable
+
+Filtering 1497 offers (each removed offer is counted once, under the first rule it breaks):
+  removed  1373   wrong destination (wanted Malaga)
+  removed    49   departs outside 2026-07-12 to 2026-07-14
+  removed     0   no seats left
+  removed     9   over budget (max EUR 50.00)
+  removed     0   too many transfers (max 1)
+  removed    19   ticket is not changeable
+Remaining: 47 offers
+
+PROFILE COMPARISON: the same 47 offers, only the weights change
+Profile              Winner   Company         Departure       EUR    Dur Fare     Total  Runner-up
+budget_traveller     OF-1025  SolRuta         14 Jul 07:00  31.50   8h35 Standard  76.8  OF-0723 (73.1)
+business_traveller   OF-1032  Camino Express  14 Jul 08:30  40.00   6h35 Standard  80.7  OF-0728 (77.8)
+flexible_tourist     OF-0725  CostaLink       13 Jul 07:45  41.50   7h30 Flex      77.5  OF-0730 (75.7)
+environment_focused  OF-1030  VerdeBus        14 Jul 08:00  39.50   7h15 Standard  82.8  OF-0426 (78.7)
+
+Rank of each winner under every profile (1 = recommended):
+Winner                    budget_trave  business_tra  flexible_tou  environment_
+OF-1025 SolRuta                      1            27            15            41
+OF-1032 Camino Express              14             1            14            14
+OF-0725 CostaLink                   20             9             1            18
+OF-1030 VerdeBus                    19             8            25             1
+
+4 different winners from 4 company/companies. The offers are the same, so only the weights make the difference.
+
+(Done. Next: Phase 7, booking. See README.)

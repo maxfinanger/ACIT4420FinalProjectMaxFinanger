@@ -1,8 +1,8 @@
-2026-10-15 10:22:39,006 | INFO | BusBidder started
-2026-10-15 10:22:39,007 | INFO | Loaded 5 companies from data/companies.csv
-2026-10-15 10:22:39,007 | INFO | Loaded 15 destinations from data/destinations.csv
-2026-10-15 10:22:39,028 | INFO | Loaded offers from data/offers.csv: 1497 accepted, 0 rejected (of 1497 rows)
-2026-10-15 10:22:42,811 | INFO | BusBidder started
-2026-10-15 10:22:42,812 | INFO | Loaded 5 companies from data/companies.csv
-2026-10-15 10:22:42,812 | INFO | Loaded 15 destinations from data/destinations.csv
-2026-10-15 10:22:42,828 | INFO | Loaded offers from data/offers.csv: 1497 accepted, 0 rejected (of 1497 rows)
+2026-10-15 10:32:07,636 | INFO | BusBidder started
+2026-10-15 10:32:07,637 | INFO | Loaded 5 companies from data/companies.csv
+2026-10-15 10:32:07,637 | INFO | Loaded 15 destinations from data/destinations.csv
+2026-10-15 10:32:07,654 | INFO | Loaded offers from data/offers.csv: 1497 accepted, 0 rejected (of 1497 rows)
+2026-10-15 10:32:13,026 | INFO | BusBidder started
+2026-10-15 10:32:13,027 | INFO | Loaded 5 companies from data/companies.csv
+2026-10-15 10:32:13,027 | INFO | Loaded 15 destinations from data/destinations.csv
+2026-10-15 10:32:13,047 | INFO | Loaded offers from data/offers.csv: 1497 accepted, 0 rejected (of 1497 rows)

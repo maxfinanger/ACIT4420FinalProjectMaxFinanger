@@ -53,4 +53,15 @@ Weight vs. real influence on the order (weight x spread of the scores):
   departure    weight  10%   influence  13%
   flexibility  weight  50%   influence  41%
 
-(Filtering and ranking done. Next: Phase 6, explanation and profile comparison. See README.)
+RECOMMENDATION
+OF-0730 (CostaLink), departs 13 Jul 10:15, arrives 13 Jul 18:05, EUR 41.50: ranked first with 77.4 out of 100 for the 'flexible_tourist' profile.
+Advantages:
+  + flexibility: a changeable and refundable fare
+  + departure: departs 10:15, 15 min from the preferred 10:00
+  + a direct route, while 11 of the 47 acceptable offers have transfers
+Drawbacks:
+  - weakest point is price: EUR 41.50, EUR 10.00 above the cheapest (EUR 31.50) (score 43 out of 100)
+Compared with the runner-up OF-0725 (75.8): ahead on departure (+3.3 points); behind on duration (-1.8 points).
+This is the highest-ranked offer only under your hard requirements, the weights of the 'flexible_tourist' profile (price 25%, duration 15%, departure 10%, flexibility 50%) and the scoring assumptions (price and duration are scored relative to the 47 acceptable offers). Other weights can give another result, so it is a recommendation under those assumptions, not a proof that nothing is better.
+
+(Done. Next: Phase 7, booking. See README.)

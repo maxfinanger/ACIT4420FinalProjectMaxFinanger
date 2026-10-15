@@ -49,6 +49,12 @@ python main.py --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 5
 # same request for another traveller profile, or with your own weights
 python main.py --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 50 --max-transfers 1 --changeable --profile business_traveller --preferred-departure 08:00
 python main.py --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 50 --weights price=40,duration=25,departure=15,flexibility=20
+
+# compare all traveller profiles on the same request
+python main.py --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 50 --max-transfers 1 --changeable --compare-profiles
+
+# regenerate docs/profile_comparison.md (reproducible)
+python scripts/compare_profiles.py
 ```
 
 `python main.py --help` lists all request options (`--max-hours`, `--min-luggage`, `--profile`, `--weights`, `--top`, ...).
@@ -62,8 +68,9 @@ At the moment `main.py` loads the companies, destinations, profiles and offers,
 validates the offers and prints a short summary (plus the rejected rows, if any).
 If a request is given (`--destination ...`) it also applies the hard constraints, shows
 what was removed and why, and ranks the rest with the weighted model (score of every
-criterion, total, and how much each criterion really influences the order).
-Explanations and booking come in the next phases.
+criterion, total, and how much each criterion really influences the order), and explains
+the top offer (advantages, drawbacks, comparison with the runner-up, caveat).
+`--compare-profiles` ranks the same offers for every profile. Booking comes in the next phase.
 
 Logs are written to `logs/busbidder.log` when the program runs. Every rejected
 offer record is logged there with its row number, id and reason.
@@ -88,7 +95,8 @@ busbidder/
 │   ├── offers_invalid_expected.json   # what each broken row should be detected as
 │   └── bookings.json        # created at runtime (git-ignored)
 ├── scripts/
-│   └── generate_data.py     # makes the dataset (fixed seed, reproducible)
+│   ├── generate_data.py     # makes the dataset (fixed seed, reproducible)
+│   └── compare_profiles.py  # makes docs/profile_comparison.md (reproducible)
 ├── busbidder/               # the application package
 │   ├── models.py            # dataclasses: Company, Offer, TravelRequest, Booking
 │   ├── exceptions.py        # custom exception hierarchy
@@ -100,7 +108,8 @@ busbidder/
 │   ├── validation.py        # business rules and regex patterns    (Task 2)
 │   ├── filtering.py         # hard-constraint filtering            (Task 3)
 │   ├── ranking.py           # weights, weighted ranking, ties, influence (Section 5 in spec)
-│   ├── explain.py           # "why is this ranked first?"          (Section 6 in spec)
+│   ├── explain.py           # generated explanation of the top offer (Section 6 in spec)
+│   ├── comparison.py        # compare profiles: which winner ranks where
 │   ├── booking.py           # simulated bookings                   (Section 6 in spec)
 │   └── cli.py               # command-line interface
 ├── tests/
@@ -110,6 +119,8 @@ busbidder/
 │   ├── test_dataset.py      # the generated dataset and the invalid test file
 │   ├── test_filtering.py    # hard constraints, filter report, request validation, CLI
 │   ├── test_ranking.py      # criteria, weights, ranking, ties, influence, CLI
+│   ├── test_explain.py      # the generated explanation
+│   ├── test_profile_comparison.py   # profile comparison, generated document, CLI
 │   ├── test_scoring_config.py   # scoring parameters and their file
 │   ├── test_validation.py   # validation rules, boundaries, regex patterns
 │   └── test_loader.py       # conversion, file errors, rejected rows, logging
@@ -121,6 +132,8 @@ busbidder/
 │   ├── validation.md        # validation rules, error categories, policy
 │   ├── filtering.md         # hard vs soft table, how the filter reports, limitations
 │   ├── scoring.md           # the scoring model, worked example, design questions, limitations
+│   ├── explanation.md       # how the explanation is generated, example, limitations
+│   ├── profile_comparison.md    # the 4 profiles on the same request (generated)
 │   ├── examples/            # saved program outputs used as evidence in the report
 │   ├── architecture.png     # components and flow of information
 │   ├── class_diagram.png    # main classes and their relations
@@ -172,6 +185,9 @@ Design choices from Phase 1 (reasons and alternatives are in `docs/decisions.md`
 - **Scoring (Phase 5):** every criterion gives 0-100 (higher is better). Price and duration are
   scored relative to the other offers (with a minimum spread), the others against a fixed reference
   (D15, `docs/scoring.md`).
+- **Explanation (Phase 6):** built from the criterion scores (advantages, always a drawback, comparison
+  with the runner-up, and a caveat that the result holds only under the chosen constraints, weights
+  and scoring assumptions), see `docs/explanation.md` (D17).
 - **`Marketplace`** holds the data and runs the filter-then-rank pipeline, so the
   CLI only has to talk to one class.
 
@@ -181,7 +197,7 @@ Design choices from Phase 1 (reasons and alternatives are in `docs/decisions.md`
 
 Tests are in `tests/` and run with `python -m pytest -v`.
 
-Right now there are 262 tests. They cover:
+Right now there are 307 tests. They cover:
 
 - **Design:** fare conditions, the abstract constraint, the budget boundary, the
   criteria registry, overnight durations, weight validation.
@@ -201,6 +217,11 @@ Right now there are 262 tests. They cover:
   missing emissions, tie-breaking, order independence, invalid and percentage weights, a criterion
   added without touching the ranker, the winner per profile on the real data, and a documented
   rank-reversal example (known limitation).
+- **Explanation:** hand-checked text, both thresholds on each side of the boundary, a drawback on every
+  profile, no-drawback / single-offer / empty cases, ties, the generic fallback for a new criterion, and that
+  the text never says "objectively".
+- **Profile comparison:** same filtered offers for every profile, at least three different winners, the rank
+  matrix, the CLI, and that the committed `docs/profile_comparison.md` is identical to what the script generates.
 
 As each phase is finished I will add tests for normal input, invalid input,
 missing data and boundary cases, as the spec requires. Hand-calculated expected
@@ -275,14 +296,14 @@ I commit after every phase.
 - [x] Return the score per criterion and the total score for every offer
 - [x] Tests with hand-calculated expected scores on a tiny dataset
 
-### [ ] Phase 6: Explanation and traveller profiles 
-- [ ] Implement `explain_top_offer()`, generated from the data
+### [x] Phase 6: Explanation and traveller profiles 
+- [x] Implement `explain_top_offer()`, generated from the data
       (e.g. "direct route, departs 40 min from preferred time, flexible fare;
       drawback: EUR 7 above the cheapest")
-- [ ] Never call the result "objectively best". It is best under the chosen
-      constraints and weights
-- [ ] Run at least 3 profiles on the same request (budget, business, flexible
-      tourist) and save the output to `docs/profile_comparison.md`
+- [x] Never call the result "objectively best". It is best under the chosen
+      constraints and weights (the caveat is always printed, and a test checks the wording)
+- [x] Run at least 3 profiles on the same request (budget, business, flexible
+      tourist) and save the output to `docs/profile_comparison.md` (4 profiles, generated by a script)
 
 ### [ ] Phase 7: Booking 
 - [ ] Let the user select an offer from the ranking
@@ -326,7 +347,7 @@ as far as possible.
 |---|---|
 | Flowchart / architecture diagram | Phase 1 |
 | Dataset description and validation | Phases 2-3 (`docs/dataset.md`, `docs/validation.md`) |
-| At least 3 traveller-profile comparisons | Phase 6 |
+| At least 3 traveller-profile comparisons | Phase 6 (`docs/profile_comparison.md`) |
 | Limitations and possible unfair outcomes | Phase 9 |
 | Generative-AI declaration (what for, how it was checked, what I changed) | notes kept during the project, see section 8 |
 

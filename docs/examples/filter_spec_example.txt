@@ -53,4 +53,14 @@ Weight vs. real influence on the order (weight x spread of the scores):
   departure    weight  10%   influence  13%
   flexibility  weight  20%   influence  14%
 
-(Filtering and ranking done. Next: Phase 6, explanation and profile comparison. See README.)
+RECOMMENDATION
+OF-1025 (SolRuta), departs 14 Jul 07:00, arrives 14 Jul 15:35, EUR 31.50: ranked first with 76.8 out of 100 for the 'budget_traveller' profile.
+Advantages:
+  + price: EUR 31.50, the joint lowest of the 47 acceptable offers
+  + a direct route, while 11 of the 47 acceptable offers have transfers
+Drawbacks:
+  - duration: 8h35, 2h15 longer than the fastest (6h20) (score 21 out of 100)
+Compared with the runner-up OF-0723 (73.1): ahead on price (+6.3 points); behind on duration (-2.6 points).
+This is the highest-ranked offer only under your hard requirements, the weights of the 'budget_traveller' profile (price 55%, duration 15%, departure 10%, flexibility 20%) and the scoring assumptions (price and duration are scored relative to the 47 acceptable offers). Other weights can give another result, so it is a recommendation under those assumptions, not a proof that nothing is better.
+
+(Done. Next: Phase 7, booking. See README.)

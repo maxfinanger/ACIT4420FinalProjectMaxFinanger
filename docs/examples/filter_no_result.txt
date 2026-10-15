@@ -30,4 +30,4 @@ Remaining: 0 offers
 No offer meets every hard constraint.
 Hint: relaxing only 'over budget (max EUR 3.00)' would give 49 offer(s).
 
-(Filtering and ranking done. Next: Phase 6, explanation and profile comparison. See README.)
+(Done. Next: Phase 7, booking. See README.)

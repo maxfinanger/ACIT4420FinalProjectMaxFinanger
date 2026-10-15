@@ -82,7 +82,7 @@ Preferred departure times are chosen per profile (a business traveller wants an 
 | flexible_tourist | 10:00 | OF-0730 CostaLink | 13 Jul 10:15 | 41.50 | 7h50 | Flex | 77.4 | OF-0725 (75.8) | price 31%, duration 15%, departure 13%, flexibility 41% |
 | environment_focused | 09:00 | OF-1030 VerdeBus | 14 Jul 08:00 | 39.50 | 7h15 | Standard | 82.8 | OF-0426 (78.7) | price 23%, duration 9%, departure 7%, flexibility 7%, emissions 49%, transfers 6% |
 
-The same 47 offers give four different winners from four different companies. Note the business
+The same 47 offers give four different winners from four different companies. (When every profile uses the same preferred departure of 09:00, as in `docs/profile_comparison.md`, the flexible tourist's winner is OF-0725 instead of OF-0730: the soft departure preference matters too.) Note the business
 profile: departure time has weight 30% but 43% real influence, because departure times differ a lot
 while prices differ little. Saved outputs: `docs/examples/ranking_<profile>.txt`.
 

@@ -4,13 +4,16 @@ Phase 3: load and validate the data.
 Phase 4: describe a traveller request and show which offers survive the hard
 constraints (use --destination ...).
 Phase 5: rank the survivors with the weighted scoring model and show the score of
-every criterion. Explanations and profile comparisons come in Phase 6, the
-interactive menu in Phase 8.
+every criterion.
+Phase 6: explain the top offer (advantages, drawbacks, comparison, caveat) and
+compare traveller profiles (--compare-profiles). The interactive menu comes in Phase 8.
 """
 import argparse
 from datetime import date, time
 
+from .comparison import winner_rank_matrix
 from .exceptions import BusBidderError, DataFileError, ValidationError
+from .explain import explain_top_offer
 from .filtering import hard_constraint_lines, soft_preference_lines
 from .loader import (load_companies, load_destinations, load_offers, load_profiles,
                      load_scoring_config, parse_date, parse_time)
@@ -61,6 +64,8 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--weights", metavar="NAME=N,...",
                    help="own weights instead of a profile, e.g. price=40,duration=25,"
                         "departure=15,flexibility=20 (adding up to 100 or 1.0)")
+    g.add_argument("--compare-profiles", action="store_true",
+                   help="rank the same offers for every profile and compare the winners")
     g.add_argument("--top", type=int, default=DEFAULT_TOP,
                    help=f"how many ranked offers to show (default {DEFAULT_TOP})")
     return p
@@ -126,6 +131,44 @@ def _print_search(request: TravelRequest, weights: dict, marketplace: Marketplac
         print(line)
     if ranked:
         _print_ranking(ranked, weights, top)
+        print("\nRECOMMENDATION")
+        print(explain_top_offer(ranked, request, weights).text())
+
+
+def _print_compare(request: TravelRequest, marketplace: Marketplace) -> None:
+    print(f"\nRequest: Madrid to {request.destination}, "
+          f"{request.date_from} to {request.date_to}, preferred departure "
+          f"{request.preferred_departure:%H:%M}")
+    print("\nHARD constraints (the same for every profile):")
+    for line in hard_constraint_lines(request):
+        print(f"  - {line}")
+    print()
+    result, rankings = marketplace.compare_profiles(request)
+    for line in result.report_lines():
+        print(line)
+    if not result.kept:
+        return
+    print(f"\nPROFILE COMPARISON: the same {len(result.kept)} offers, only the weights change")
+    print(f"{'Profile':<20} {'Winner':<8} {'Company':<15} {'Departure':<12} {'EUR':>6} {'Dur':>6} "
+          f"{'Fare':<8} {'Total':>5}  Runner-up")
+    for name, ranked in rankings.items():
+        top, second = ranked[0], (ranked[1] if len(ranked) > 1 else None)
+        o = top.offer
+        print(f"{name:<20} {o.offer_id:<8} {o.company:<15} {o.travel_date:%d %b} {o.departure_time:%H:%M} "
+              f"{o.price:>6.2f} {_duration_text(o.duration_minutes):>6} {o.fare.fare_type:<8} "
+              f"{top.total_score:>5.1f}  " + (f"{second.offer.offer_id} ({second.total_score:.1f})" if second else "-"))
+    matrix = winner_rank_matrix(rankings)
+    print("\nRank of each winner under every profile (1 = recommended):")
+    print(f"{'Winner':<24}" + "".join(f"{n[:12]:>14}" for n in rankings))
+    for winner, ranks in matrix:
+        print(f"{winner.offer.offer_id + ' ' + winner.offer.company:<24}"
+              + "".join(f"{ranks[n]:>14}" for n in rankings))
+    if len(matrix) == 1:
+        print("\nAll profiles recommend the same offer for this request.")
+    else:
+        print(f"\n{len(matrix)} different winners from "
+              f"{len({w.offer.company for w, _ in matrix})} company/companies. "
+              "The offers are the same, so only the weights make the difference.")
 
 
 def run(argv: list[str] | None = None) -> int:
@@ -171,10 +214,13 @@ def run(argv: list[str] | None = None) -> int:
             max_duration_minutes=None if args.max_hours is None else round(args.max_hours * 60),
             preferred_departure=args.preferred_departure, profile=profile)
         marketplace = Marketplace(companies, destinations, result.offers, profiles)
-        _print_search(request, weights, marketplace, max(1, args.top))
+        if args.compare_profiles:
+            _print_compare(request, marketplace)
+        else:
+            _print_search(request, weights, marketplace, max(1, args.top))
     except BusBidderError as err:
         log.warning("Invalid request: %s", err)
         print(f"\nInvalid request: {getattr(err, 'message', err)}")
         return 2
-    print("\n(Filtering and ranking done. Next: Phase 6, explanation and profile comparison. See README.)")
+    print("\n(Done. Next: Phase 7, booking. See README.)")
     return 0

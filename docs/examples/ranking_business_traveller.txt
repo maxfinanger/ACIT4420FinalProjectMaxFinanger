@@ -53,4 +53,15 @@ Weight vs. real influence on the order (weight x spread of the scores):
   departure    weight  30%   influence  43%
   flexibility  weight  15%   influence  10%
 
-(Filtering and ranking done. Next: Phase 6, explanation and profile comparison. See README.)
+RECOMMENDATION
+OF-1032 (Camino Express), departs 14 Jul 08:30, arrives 14 Jul 15:05, EUR 40.00: ranked first with 80.7 out of 100 for the 'business_traveller' profile.
+Advantages:
+  + duration: 6h35, 0h15 longer than the fastest (6h20)
+  + departure: departs 08:30, 30 min from the preferred 08:00
+  + a direct route, while 11 of the 47 acceptable offers have transfers
+Drawbacks:
+  - weakest point is price: EUR 40.00, EUR 8.50 above the cheapest (EUR 31.50) (score 51 out of 100)
+Compared with the runner-up OF-0728 (77.8): ahead on price (+1.7 points), duration (+1.2 points).
+This is the highest-ranked offer only under your hard requirements, the weights of the 'business_traveller' profile (price 15%, duration 40%, departure 30%, flexibility 15%) and the scoring assumptions (price and duration are scored relative to the 47 acceptable offers). Other weights can give another result, so it is a recommendation under those assumptions, not a proof that nothing is better.
+
+(Done. Next: Phase 7, booking. See README.)

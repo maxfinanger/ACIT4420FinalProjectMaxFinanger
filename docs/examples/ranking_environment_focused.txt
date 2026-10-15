@@ -57,4 +57,15 @@ Weight vs. real influence on the order (weight x spread of the scores):
   emissions    weight  45%   influence  49%
   transfers    weight  10%   influence   6%
 
-(Filtering and ranking done. Next: Phase 6, explanation and profile comparison. See README.)
+RECOMMENDATION
+OF-1030 (VerdeBus), departs 14 Jul 08:00, arrives 14 Jul 15:15, EUR 39.50: ranked first with 82.8 out of 100 for the 'environment_focused' profile.
+Advantages:
+  + emissions: 10.6 kg CO2 (lowest reported: 10.6 kg)
+  + transfers: a direct route
+  + departure: departs 08:00, 60 min from the preferred 09:00
+Drawbacks:
+  - weakest point is price: EUR 39.50, EUR 8.00 above the cheapest (EUR 31.50) (score 54 out of 100)
+Compared with the runner-up OF-0426 (78.7): ahead on emissions (+2.7 points), duration (+0.9 points).
+This is the highest-ranked offer only under your hard requirements, the weights of the 'environment_focused' profile (price 20%, duration 10%, departure 5%, flexibility 10%, emissions 45%, transfers 10%) and the scoring assumptions (price and duration are scored relative to the 47 acceptable offers). Other weights can give another result, so it is a recommendation under those assumptions, not a proof that nothing is better.
+
+(Done. Next: Phase 7, booking. See README.)

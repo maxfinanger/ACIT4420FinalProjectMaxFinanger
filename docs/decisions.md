@@ -236,10 +236,38 @@ from here. Decisions marked "preliminary" will be confirmed in the phase named.
   gain by not reporting emissions. A median-based cap works for any list size, where percentiles are unstable with a
   handful of offers.
 
+## D17. The explanation is generated from the scores, with a fixed structure
+- **Status:** Decided
+- **Decision:** `explain_top_offer` builds the text from the ranked offers: advantages (criterion score 75 or
+  more), drawbacks (40 or less, and always at least one line), a comparison with the runner-up in weighted points,
+  a tie note when needed, and a caveat that the offer is best only under the hard requirements, the weights and
+  the scoring assumptions. Details in `docs/explanation.md`.
+- **Alternatives:** A fixed template per company or fare; a free-text description written by hand per offer;
+  only listing the scores; asking an AI model to write the explanation.
+- **Reason:** The spec wants the text generated from the data and honest about the model. Building it from the
+  same criterion scores as the ranking means the two can never disagree, and it works for any criterion added through
+  the registry. An AI-written explanation would be less reproducible and could claim things the data does not show.
+  Always naming a drawback and ending with the caveat follows the spec's warning not to call a result objectively best.
+- **Trade-off:** fixed thresholds and template sentences are simple and testable, but not very varied.
+
+## D18. Profiles are compared on one request, filtering once, and the comparison file is generated
+- **Status:** Decided
+- **Decision:** `Marketplace.compare_profiles` filters once and ranks the same offers with each profile's weights.
+  The request, including the preferred departure time, is identical for every profile. `scripts/compare_profiles.py`
+  writes `docs/profile_comparison.md` (no hand editing, no timestamps), and a test checks that the committed file
+  matches the script. A second small experiment gives each traveller their own preferred departure time.
+- **Alternatives:** A different request per traveller (more realistic, but then differences cannot be blamed on the
+  weights); copying numbers into the report by hand.
+- **Reason:** Holding everything but the weights fixed is what shows that "the same offers can produce different
+  recommendations for different travellers". A generated file means the report numbers can be reproduced, and the test
+  catches stale documentation (it did, once, during this phase).
+- **Observation:** with an identical request there are four different winners from four companies. If each traveller
+  also gets their own preferred time, one winner changes (the flexible tourist moves from OF-0725 to OF-0730), so the
+  soft departure preference matters too.
+
 ---
 
 ## Still to decide
 
 - Booking reference format (Phase 7). Currently `BB-YYYYMMDD-XXXXXX`.
-- How the explanation chooses which advantages and disadvantages to mention (Phase 6).
 - Whether to test how sensitive the ranking is to the numbers in `config/scoring.json` (Phase 9, probably yes).
