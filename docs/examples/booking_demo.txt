@@ -1,0 +1,55 @@
+$ BUSBIDDER_SEED=7 python main.py --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 50 --max-transfers 1 --changeable --book 1 --name "Ana Pérez" --bookings docs/examples/demo_bookings.json
+=== BusBidder Spain ===
+Companies    : 5
+Destinations : 15
+Profiles     : budget_traveller, business_traveller, flexible_tourist, environment_focused
+Offers       : 1497 loaded, 0 rejected (data/offers.csv)
+Bookings     : 0 saved (docs/examples/demo_bookings.json)
+BOOKING CONFIRMED
+  Reference : BB-20260714-WK3DEG
+  Traveller : Ana Pérez
+  Journey   : Madrid to Malaga with SolRuta
+  Departs   : Tue 14 Jul 2026 07:00
+  Arrives   : Tue 14 Jul 2026 15:35 (8h35)
+  Fare      : Standard (changeable: yes, refundable: no, luggage: 20 kg)
+  Price     : EUR 31.50
+  Payment   : SIMULATED-PAID (simulated, no real payment was taken)
+  Offer     : OF-1025 (rank 1, score 76.8)
+  Seats left on this offer: 10
+
+(Done. Next: Phase 8, interface polish. See README.)
+
+$ (the same traveller books the same offer again)
+$ BUSBIDDER_SEED=7 python main.py --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 50 --max-transfers 1 --changeable --book 1 --name "ana pérez" --bookings docs/examples/demo_bookings.json
+This is the highest-ranked offer only under your hard requirements, the weights of the 'budget_traveller' profile (price 55%, duration 15%, departure 10%, flexibility 20%) and the scoring assumptions (price and duration are scored relative to the 47 acceptable offers). Other weights can give another result, so it is a recommendation under those assumptions, not a proof that nothing is better.
+
+Booking refused: ana pérez already has a booking on OF-1025
+
+$ (another traveller books the same offer)
+$ BUSBIDDER_SEED=7 python main.py --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 50 --max-transfers 1 --changeable --book OF-1025 --name "Eva Larsen" --bookings docs/examples/demo_bookings.json
+BOOKING CONFIRMED
+  Reference : BB-20260714-ZDPCF5
+  Traveller : Eva Larsen
+  Journey   : Madrid to Malaga with SolRuta
+  Departs   : Tue 14 Jul 2026 07:00
+  Arrives   : Tue 14 Jul 2026 15:35 (8h35)
+  Fare      : Standard (changeable: yes, refundable: no, luggage: 20 kg)
+  Price     : EUR 31.50
+  Payment   : SIMULATED-PAID (simulated, no real payment was taken)
+  Offer     : OF-1025 (rank 1, score 76.8)
+  Seats left on this offer: 9
+
+(Done. Next: Phase 8, interface polish. See README.)
+
+$ (a card number typed as a name is refused)
+$ python main.py --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 50 --max-transfers 1 --changeable --book 1 --name "4111 1111 1111 1111" --bookings docs/examples/demo_bookings.json
+This is the highest-ranked offer only under your hard requirements, the weights of the 'budget_traveller' profile (price 55%, duration 15%, departure 10%, flexibility 20%) and the scoring assumptions (price and duration are scored relative to the 47 acceptable offers). Other weights can give another result, so it is a recommendation under those assumptions, not a proof that nothing is better.
+
+Booking not made: name may only contain letters, spaces, hyphens, apostrophes and full stops (no digits: no payment data is collected)
+
+$ python main.py --show-bookings --bookings docs/examples/demo_bookings.json
+Bookings     : 2 saved (docs/examples/demo_bookings.json)
+
+Reference            Traveller              Offer    Company         Departs              EUR
+BB-20260714-WK3DEG   Ana Pérez              OF-1025  SolRuta         14 Jul 07:00      31.50
+BB-20260714-ZDPCF5   Eva Larsen             OF-1025  SolRuta         14 Jul 07:00      31.50

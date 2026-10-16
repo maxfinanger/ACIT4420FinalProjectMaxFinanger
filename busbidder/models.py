@@ -44,6 +44,13 @@ class Offer:
     seats_available: int
     rating: float
     emissions_kg: float | None = None   # optional environmental measure (kg CO2 per passenger)
+    # Seats in the data file. `seats_available` is what is left after bookings (D9, D19):
+    # seats_available == capacity - seats sold. Defaults to the value in the file.
+    capacity: int | None = None
+
+    def __post_init__(self):
+        if self.capacity is None:
+            self.capacity = self.seats_available
 
     @property
     def departure_datetime(self) -> datetime:
@@ -90,12 +97,24 @@ class RankedOffer:
 
 @dataclass
 class Booking:
+    """A saved booking. It keeps its own copy of the journey and the fare conditions that
+    applied when it was made, so later changes to the offers cannot change it."""
     reference: str
     offer_id: str
     company: str
     destination: str
     travel_date: date
+    departure_time: time
+    arrival_date: date
+    arrival_time: time
     price_paid: float
     traveller_name: str
     fare: FareConditions
-    payment_status: str = "SIMULATED-PAID"
+    payment_status: str = "SIMULATED-PAID"      # no real payment is ever taken
+    booked_at: str = ""                         # ISO timestamp, set by the booking service
+
+    @property
+    def duration_minutes(self) -> int:
+        start = datetime.combine(self.travel_date, self.departure_time)
+        end = datetime.combine(self.arrival_date, self.arrival_time)
+        return int((end - start).total_seconds() // 60)

@@ -53,6 +53,10 @@ python main.py --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 5
 # compare all traveller profiles on the same request
 python main.py --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 50 --max-transfers 1 --changeable --compare-profiles
 
+# book the top offer of the ranking (simulated, saved in data/bookings.json), or book by offer id
+python main.py --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 50 --max-transfers 1 --changeable --book 1 --name "Ana Perez"
+python main.py --show-bookings
+
 # regenerate docs/profile_comparison.md (reproducible)
 python scripts/compare_profiles.py
 ```
@@ -70,7 +74,10 @@ If a request is given (`--destination ...`) it also applies the hard constraints
 what was removed and why, and ranks the rest with the weighted model (score of every
 criterion, total, and how much each criterion really influences the order), and explains
 the top offer (advantages, drawbacks, comparison with the runner-up, caveat).
-`--compare-profiles` ranks the same offers for every profile. Booking comes in the next phase.
+`--compare-profiles` ranks the same offers for every profile. `--book RANK|OFFER_ID --name NAME` books one
+seat (simulated payment, the name cannot contain digits). Use `--bookings FILE` to keep trial bookings out of
+`data/bookings.json`, and `BUSBIDDER_SEED=7` to make booking references repeatable in demos.
+Exit codes: 0 ok, 1 data file problem, 2 invalid request/selection/name, 3 booking refused.
 
 Logs are written to `logs/busbidder.log` when the program runs. Every rejected
 offer record is logged there with its row number, id and reason.
@@ -110,7 +117,7 @@ busbidder/
 │   ├── ranking.py           # weights, weighted ranking, ties, influence (Section 5 in spec)
 │   ├── explain.py           # generated explanation of the top offer (Section 6 in spec)
 │   ├── comparison.py        # compare profiles: which winner ranks where
-│   ├── booking.py           # simulated bookings                   (Section 6 in spec)
+│   ├── booking.py           # BookingService: seats, references, bookings file (Section 6 in spec)
 │   └── cli.py               # command-line interface
 ├── tests/
 │   ├── conftest.py          # shared fixtures (valid offer and row)
@@ -120,6 +127,7 @@ busbidder/
 │   ├── test_filtering.py    # hard constraints, filter report, request validation, CLI
 │   ├── test_ranking.py      # criteria, weights, ranking, ties, influence, CLI
 │   ├── test_explain.py      # the generated explanation
+│   ├── test_booking.py      # booking, seat accounting, corrupt files, selection, CLI
 │   ├── test_profile_comparison.py   # profile comparison, generated document, CLI
 │   ├── test_scoring_config.py   # scoring parameters and their file
 │   ├── test_validation.py   # validation rules, boundaries, regex patterns
@@ -133,6 +141,7 @@ busbidder/
 │   ├── filtering.md         # hard vs soft table, how the filter reports, limitations
 │   ├── scoring.md           # the scoring model, worked example, design questions, limitations
 │   ├── explanation.md       # how the explanation is generated, example, limitations
+│   ├── booking.md           # booking flow, rules, file format, limitations
 │   ├── profile_comparison.md    # the 4 profiles on the same request (generated)
 │   ├── examples/            # saved program outputs used as evidence in the report
 │   ├── architecture.png     # components and flow of information
@@ -188,6 +197,9 @@ Design choices from Phase 1 (reasons and alternatives are in `docs/decisions.md`
 - **Explanation (Phase 6):** built from the criterion scores (advantages, always a drawback, comparison
   with the runner-up, and a caveat that the result holds only under the chosen constraints, weights
   and scoring assumptions), see `docs/explanation.md` (D17).
+- **Booking (Phase 7):** `data/bookings.json` is the only record of seats sold (the offers file is never changed),
+  it is re-read before every booking and written atomically, and a booking keeps its own copy of the fare
+  conditions. See `docs/booking.md` (D19, D20).
 - **`Marketplace`** holds the data and runs the filter-then-rank pipeline, so the
   CLI only has to talk to one class.
 
@@ -197,7 +209,7 @@ Design choices from Phase 1 (reasons and alternatives are in `docs/decisions.md`
 
 Tests are in `tests/` and run with `python -m pytest -v`.
 
-Right now there are 307 tests. They cover:
+Right now there are 405 tests. They cover:
 
 - **Design:** fare conditions, the abstract constraint, the budget boundary, the
   criteria registry, overnight durations, weight validation.
@@ -222,6 +234,10 @@ Right now there are 307 tests. They cover:
   the text never says "objectively".
 - **Profile comparison:** same filtered offers for every profile, at least three different winners, the rank
   matrix, the CLI, and that the committed `docs/profile_comparison.md` is identical to what the script generates.
+- **Booking:** the name rules, saved fields and no payment data, last seat / sold out / double booking, a stale
+  offer cannot oversell, seat counts after a restart, 20 kinds of corrupt bookings file (never overwritten), failed saves,
+  unique references and collisions, choosing from the ranking, a sold-out offer disappearing from the next search,
+  and the CLI exit codes. I also broke the booking code on purpose in five ways to check that the tests notice.
 
 As each phase is finished I will add tests for normal input, invalid input,
 missing data and boundary cases, as the spec requires. Hand-calculated expected
@@ -305,14 +321,14 @@ I commit after every phase.
 - [x] Run at least 3 profiles on the same request (budget, business, flexible
       tourist) and save the output to `docs/profile_comparison.md` (4 profiles, generated by a script)
 
-### [ ] Phase 7: Booking 
-- [ ] Let the user select an offer from the ranking
-- [ ] Check that seats are still available
-- [ ] Generate a unique booking reference that matches the regex
-- [ ] Reduce capacity consistently (in memory and in the saved data)
-- [ ] Save the booking with its fare conditions to `data/bookings.json`
-- [ ] Clear confirmation message, simulated payment status only (no real card data)
-- [ ] Tests: last seat, sold out, double booking
+### [x] Phase 7: Booking 
+- [x] Let the user select an offer from the ranking (`--book RANK|OFFER_ID`)
+- [x] Check that seats are still available (the file is re-read before every booking)
+- [x] Generate a unique booking reference that matches the regex
+- [x] Reduce capacity consistently (in memory and in the saved data)
+- [x] Save the booking with its fare conditions to `data/bookings.json`
+- [x] Clear confirmation message, simulated payment status only (no real card data)
+- [x] Tests: last seat, sold out, double booking
 
 ### [ ] Phase 8: Interface polish
 - [ ] Interactive CLI menu: enter request, see filtered and ranked offers, book

@@ -25,6 +25,10 @@ BOOKING_REF_PATTERN = re.compile(r"\ABB-\d{8}-[A-Z0-9]{6}\Z")   # e.g. BB-202607
 OFFER_ID_PATTERN = re.compile(r"\AOF-\d{4}\Z")                  # e.g. OF-0042
 DATE_PATTERN = re.compile(r"\A\d{4}-\d{2}-\d{2}\Z")             # ISO date
 TIME_PATTERN = re.compile(r"\A([01]\d|2[0-3]):[0-5]\d\Z")       # 24-hour HH:MM
+# Names: letters (any language), optional full stop, separated by space, hyphen or apostrophe.
+# No digits on purpose: the program must never store a card number typed in by mistake (D19).
+TRAVELLER_NAME_PATTERN = re.compile(r"\A[^\W\d_]+\.?(?:[ '\-][^\W\d_]+\.?)*\Z")
+MAX_NAME_LENGTH = 60
 
 # ---- limits ---------------------------------------------------------------
 RATING_MIN, RATING_MAX = 0.0, 5.0          # inclusive rating scale
@@ -103,3 +107,19 @@ def validate_request(request: TravelRequest, known_destinations=None) -> None:
         raise ValidationError("invalid_luggage", f"luggage must be 0 or more, got {request.min_luggage_kg}")
     if known_destinations is not None and request.destination not in known_destinations:
         raise ValidationError("unknown_destination", f"unknown destination '{request.destination}'")
+
+
+def clean_traveller_name(name) -> str:
+    """Return the name with tidy spaces, or raise ValidationError("invalid_name")."""
+    if not isinstance(name, str):
+        raise ValidationError("invalid_name", "name must be text")
+    cleaned = " ".join(name.split())
+    if not cleaned:
+        raise ValidationError("invalid_name", "name must not be empty")
+    if len(cleaned) > MAX_NAME_LENGTH:
+        raise ValidationError("invalid_name", f"name must be at most {MAX_NAME_LENGTH} characters")
+    if not TRAVELLER_NAME_PATTERN.match(cleaned):
+        raise ValidationError("invalid_name",
+                              "name may only contain letters, spaces, hyphens, apostrophes and "
+                              "full stops (no digits: no payment data is collected)")
+    return cleaned

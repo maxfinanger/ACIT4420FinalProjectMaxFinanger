@@ -30,6 +30,14 @@ class BookingError(BusBidderError):
     """A booking could not be completed (e.g. no seats left)."""
 
 
+class SoldOutError(BookingError):
+    """No seats are left on the offer."""
+
+
+class DuplicateBookingError(BookingError):
+    """This traveller already has a booking on this offer."""
+
+
 class UnknownCriterionError(WeightError):
     """Weights refer to a scoring criterion that is not registered."""
 

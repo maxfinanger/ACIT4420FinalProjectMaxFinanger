@@ -4,18 +4,21 @@ The CLI talks to this class and not to every module separately.
 """
 from .filtering import FilterResult, filter_offers
 from .validation import validate_request
-from .exceptions import ValidationError
-from .models import Company, Destination, Offer, RankedOffer, TravelRequest
+from .booking import BookingService
+from .exceptions import BookingError, ValidationError
+from .models import Booking, Company, Destination, Offer, RankedOffer, TravelRequest
 from .ranking import rank_offers
 
 
 class Marketplace:
     def __init__(self, companies: list[Company], destinations: list[Destination],
-                 offers: list[Offer], profiles: dict[str, dict[str, float]]):
+                 offers: list[Offer], profiles: dict[str, dict[str, float]],
+                 bookings: BookingService | None = None):
         self.companies = companies
         self.destinations = destinations
         self.offers = offers
         self.profiles = profiles          # profile name -> criterion weights
+        self.bookings = bookings          # saves bookings and keeps seat counts (Phase 7)
 
     def filter(self, request: TravelRequest) -> FilterResult:
         """Hard constraints only (no ranking). Also checks that the request makes sense."""
@@ -41,3 +44,9 @@ class Marketplace:
                 raise ValidationError("unknown_profile", f"unknown profile '{request.profile}'")
             weights = self.profiles[request.profile]
         return result, rank_offers(result.kept, request, weights)
+
+    def book(self, offer: Offer, traveller_name: str) -> Booking:
+        """Book one seat on an offer (the offer should come from a ranking)."""
+        if self.bookings is None:
+            raise BookingError("booking is not available: this marketplace has no booking service")
+        return self.bookings.book(offer, traveller_name)

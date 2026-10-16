@@ -6,13 +6,22 @@ constraints (use --destination ...).
 Phase 5: rank the survivors with the weighted scoring model and show the score of
 every criterion.
 Phase 6: explain the top offer (advantages, drawbacks, comparison, caveat) and
-compare traveller profiles (--compare-profiles). The interactive menu comes in Phase 8.
+compare traveller profiles (--compare-profiles).
+Phase 7: book an offer from the ranking (--book 1 --name "Ana Perez"). The interactive
+menu comes in Phase 8.
+
+Exit codes: 0 ok, 1 a data file is missing or unreadable, 2 invalid request or selection,
+3 the booking was refused (sold out, duplicate).
 """
+import os
+import random
 import argparse
 from datetime import date, time
 
 from .comparison import winner_rank_matrix
-from .exceptions import BusBidderError, DataFileError, ValidationError
+from .booking import (BookingService, format_booking_list, format_confirmation,
+                      select_from_ranking)
+from .exceptions import BookingError, BusBidderError, DataFileError, ValidationError
 from .explain import explain_top_offer
 from .filtering import hard_constraint_lines, soft_preference_lines
 from .loader import (load_companies, load_destinations, load_offers, load_profiles,
@@ -23,6 +32,7 @@ from .models import RankedOffer, TravelRequest
 from .ranking import influence_share, parse_weights
 from .scoring_config import set_config
 
+DEFAULT_BOOKINGS_FILE = "data/bookings.json"
 MAX_REJECTED_SHOWN = 25
 DEFAULT_TOP = 10
 
@@ -66,17 +76,25 @@ def build_parser() -> argparse.ArgumentParser:
                         "departure=15,flexibility=20 (adding up to 100 or 1.0)")
     g.add_argument("--compare-profiles", action="store_true",
                    help="rank the same offers for every profile and compare the winners")
+    b = p.add_argument_group("booking (simulated, no payment data is collected)")
+    b.add_argument("--book", metavar="RANK|OFFER_ID",
+                   help="book one seat from the ranking: a rank number (1) or an offer id (OF-1025)")
+    b.add_argument("--name", help="traveller name for the booking (letters only, no digits)")
+    b.add_argument("--bookings", default=DEFAULT_BOOKINGS_FILE, metavar="FILE",
+                   help=f"bookings file (default: {DEFAULT_BOOKINGS_FILE})")
+    b.add_argument("--show-bookings", action="store_true", help="list the saved bookings and exit")
     g.add_argument("--top", type=int, default=DEFAULT_TOP,
                    help=f"how many ranked offers to show (default {DEFAULT_TOP})")
     return p
 
 
-def _print_load_summary(companies, destinations, profiles, result, path) -> None:
+def _print_load_summary(companies, destinations, profiles, result, path, service) -> None:
     print("=== BusBidder Spain ===")
     print(f"Companies    : {len(companies)}")
     print(f"Destinations : {len(destinations)}")
     print(f"Profiles     : {', '.join(profiles)}")
     print(f"Offers       : {len(result.offers)} loaded, {len(result.rejected)} rejected ({path})")
+    print(f"Bookings     : {len(service.load())} saved ({service.store_path})")
     if result.rejected:
         print("\nRejected records (details in logs/busbidder.log):")
         for rec in result.rejected[:MAX_REJECTED_SHOWN]:
@@ -114,7 +132,7 @@ def _print_ranking(ranked: list[RankedOffer], weights: dict, top: int) -> None:
 
 
 def _print_search(request: TravelRequest, weights: dict, marketplace: Marketplace,
-                  top: int) -> None:
+                  top: int) -> list:
     label = "custom weights" if request.profile == "(custom)" else f"profile {request.profile}"
     print(f"\nRequest: Madrid to {request.destination}, "
           f"{request.date_from} to {request.date_to}, {label}")
@@ -133,6 +151,7 @@ def _print_search(request: TravelRequest, weights: dict, marketplace: Marketplac
         _print_ranking(ranked, weights, top)
         print("\nRECOMMENDATION")
         print(explain_top_offer(ranked, request, weights).text())
+    return ranked
 
 
 def _print_compare(request: TravelRequest, marketplace: Marketplace) -> None:
@@ -176,6 +195,15 @@ def run(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.destination and None in (args.date_from, args.date_to, args.budget):
         parser.error("--destination also needs --from, --to and --budget")
+    if args.book and not args.destination:
+        parser.error("--book needs a request (--destination, --from, --to, --budget) to choose from")
+    if args.book and not args.name:
+        parser.error("--book also needs --name")
+    if args.book and args.compare_profiles:
+        parser.error("--book cannot be combined with --compare-profiles")
+    seed = os.environ.get("BUSBIDDER_SEED")
+    if seed is not None and not seed.lstrip("-").isdigit():
+        parser.error("BUSBIDDER_SEED must be a whole number")
 
     log = setup_logging()
     log.info("BusBidder started")
@@ -187,11 +215,18 @@ def run(argv: list[str] | None = None) -> int:
         set_config(load_scoring_config())
         result = load_offers(args.offers,
                              [d.name for d in destinations], [c.name for c in companies])
+        # BUSBIDDER_SEED makes booking references reproducible (for demos and the report)
+        service = BookingService(args.bookings,
+                                 rng=random.Random(int(seed)) if seed is not None else None)
+        service.apply_to_offers(result.offers)
+        _print_load_summary(companies, destinations, profiles, result, args.offers, service)
     except DataFileError as err:
         print(f"Error: {err}")
         return 1
 
-    _print_load_summary(companies, destinations, profiles, result, args.offers)
+    if args.show_bookings:
+        print("\n" + format_booking_list(service.load()))
+        return 0
 
     if not args.destination:
         print("\nTip: add --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 50 "
@@ -213,14 +248,32 @@ def run(argv: list[str] | None = None) -> int:
             require_changeable=args.changeable, min_luggage_kg=args.min_luggage,
             max_duration_minutes=None if args.max_hours is None else round(args.max_hours * 60),
             preferred_departure=args.preferred_departure, profile=profile)
-        marketplace = Marketplace(companies, destinations, result.offers, profiles)
+        marketplace = Marketplace(companies, destinations, result.offers, profiles, service)
         if args.compare_profiles:
             _print_compare(request, marketplace)
+            ranked = []
         else:
-            _print_search(request, weights, marketplace, max(1, args.top))
+            ranked = _print_search(request, weights, marketplace, max(1, args.top))
+        chosen = select_from_ranking(ranked, args.book) if args.book else None
+    except BookingError as err:
+        print(f"\nBooking refused: {err}")
+        return 3
     except BusBidderError as err:
         log.warning("Invalid request: %s", err)
         print(f"\nInvalid request: {getattr(err, 'message', err)}")
         return 2
-    print("\n(Done. Next: Phase 7, booking. See README.)")
+    if chosen is not None:
+        try:
+            booking = marketplace.book(chosen.offer, args.name)
+        except BookingError as err:
+            log.warning("Booking refused: %s", err)
+            print(f"\nBooking refused: {err}")
+            return 3
+        except (ValidationError, DataFileError) as err:
+            print(f"\nBooking not made: {getattr(err, 'message', err)}")
+            return 2 if isinstance(err, ValidationError) else 1
+        print("\n" + format_confirmation(booking, chosen.offer.seats_available,
+                                         chosen.rank, chosen.total_score))
+
+    print("\n(Done. Next: Phase 8, interface polish. See README.)")
     return 0

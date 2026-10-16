@@ -49,3 +49,10 @@ def _reset_scoring_config():
     reset_config()
     yield
     reset_config()
+
+
+@pytest.fixture(autouse=True)
+def _isolated_bookings(tmp_path, monkeypatch):
+    """No test may read or write the real data/bookings.json."""
+    import busbidder.cli as cli
+    monkeypatch.setattr(cli, "DEFAULT_BOOKINGS_FILE", str(tmp_path / "default_bookings.json"))
