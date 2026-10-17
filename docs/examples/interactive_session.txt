@@ -1,0 +1,265 @@
+
+=== BusBidder Spain: interactive mode ===
+Find and book a bus from Madrid. Type q to cancel a question, and 0 at the menu to quit.
+
+MENU
+  1) New search
+  2) Show all ranked offers of the last search
+  3) Rank the last search again with another profile or your own weights
+  4) Compare the traveller profiles on the last search
+  5) Book an offer from the last search
+  6) Show saved bookings
+  7) Help
+  0) Quit
+Choose an option (0-7): 1
+
+Destinations (every trip starts in Madrid):
+   1) Barcelona                2) Valencia                 3) Seville                 
+   4) Malaga                   5) Granada                  6) Cordoba                 
+   7) Bilbao                   8) San Sebastian            9) Zaragoza                
+  10) Alicante                11) Murcia                  12) Salamanca               
+  13) Toledo                  14) Santiago de Compostela  15) Cadiz                   
+Destination (number or name): Malga
+  ! 'Malga' is not a destination. Did you mean: Malaga?  (q = cancel)
+Destination (number or name): Málaga
+  (offers exist for 2026-07-11 to 2026-07-15)
+Earliest departure date (e.g. 2026-07-12): tomorrow
+  ! Dates look like 2026-07-12 (year-month-day) or 12/07/2026 (day/month/year), and must be real dates.  (q = cancel)
+Earliest departure date (e.g. 2026-07-12): 12/07/2026
+Latest departure date (Enter = same day): 2026-07-11
+  ! The latest date cannot be before the earliest (2026-07-12).  (q = cancel)
+Latest departure date (Enter = same day): 14.7.2026
+Maximum price in EUR (e.g. 50): abc
+  ! Enter the maximum price in euros as a number above 0, e.g. 50 or 49,90.  (q = cancel)
+Maximum price in EUR (e.g. 50): 49,90
+Maximum transfers (0 = direct only, Enter = no limit): 1
+Must the ticket be changeable? [y/N]: y
+Preferred departure time (Enter = 09:00): 9.30
+
+Traveller profiles (they set how much each criterion counts):
+  1) budget_traveller     price 55%, duration 15%, departure 10%, flexibility 20%
+  2) business_traveller   price 15%, duration 40%, departure 30%, flexibility 15%
+  3) flexible_tourist     price 25%, duration 15%, departure 10%, flexibility 50%
+  4) environment_focused  price 20%, duration 10%, departure 5%, flexibility 10%, emissions 45%, transfers 10%
+  c) your own weights
+Profile (number or name, c = own, Enter = budget_traveller): 
+Set a journey-time or luggage limit too? [y/N]: n
+
+Request: Madrid to Malaga, 2026-07-12 to 2026-07-14, profile budget_traveller
+
+HARD constraints (an offer that breaks one is removed before ranking):
+  - destination: Malaga
+  - departure between 2026-07-12 and 2026-07-14 (both days included)
+  - at least 1 seat available
+  - price at most EUR 49.90
+  - at most 1 transfer(s)
+  - ticket must be changeable
+
+SOFT preferences (only affect the score, never remove an offer):
+  - price: Lower price is better (weight 0.55)
+  - duration: Shorter journey is better (weight 0.15)
+  - departure: Departure close to the preferred time is better (weight 0.10)
+  - flexibility: Changeable / refundable fares are rewarded (weight 0.20)
+  - preferred departure time: 09:30
+  - profile: budget_traveller
+  (price is both: the budget is hard, and within it a lower price scores higher)
+
+Filtering 1497 offers (each removed offer is counted once, under the first rule it breaks):
+  removed  1373   wrong destination (wanted Malaga)
+  removed    49   departs outside 2026-07-12 to 2026-07-14
+  removed     0   no seats left
+  removed     9   over budget (max EUR 49.90)
+  removed     0   too many transfers (max 1)
+  removed    19   ticket is not changeable
+Remaining: 47 offers
+
+RANKING (47 offers, best first). Scores are 0-100, higher is better; price, duration and
+emissions are scored relative to these offers, see docs/scoring.md.
+  #  Offer    Company         Departure       EUR    Dur Tr Fare     |  price durati depart flexib | TOTAL
+  1  OF-1025  SolRuta         14 Jul 07:00  31.50   8h35  0 Standard |  100.0   20.6   58.3   60.0 |  75.9
+  2  OF-1035  CostaLink       14 Jul 10:15  35.50   7h20  0 Standard |   77.1   64.7   87.5   60.0 |  72.9
+  3  OF-0723  SolRuta         13 Jul 07:00  33.50   8h05  0 Standard |   88.6   38.2   58.3   60.0 |  72.3
+  4  OF-0726  CostaLink       13 Jul 07:45  35.00   7h30  0 Standard |   80.0   58.8   70.8   60.0 |  71.9
+  5  OF-1042  SolRuta         14 Jul 15:30  31.50   8h25  0 Standard |  100.0   26.5    0.0   60.0 |  71.0
+... 42 more offers not shown (use --top)
+
+Weight vs. real influence on the order (weight x spread of the scores):
+  price        weight  55%   influence  61%
+  duration     weight  15%   influence  13%
+  departure    weight  10%   influence  12%
+  flexibility  weight  20%   influence  14%
+
+RECOMMENDATION
+OF-1025 (SolRuta), departs 14 Jul 07:00, arrives 14 Jul 15:35, EUR 31.50: ranked first with 75.9 out of 100 for the 'budget_traveller' profile.
+Advantages:
+  + price: EUR 31.50, the joint lowest of the 47 acceptable offers
+  + a direct route, while 11 of the 47 acceptable offers have transfers
+Drawbacks:
+  - duration: 8h35, 2h15 longer than the fastest (6h20) (score 21 out of 100)
+Compared with the runner-up OF-1035 (72.9): ahead on price (+12.6 points); behind on duration (-6.6 points), departure (-2.9 points).
+This is the highest-ranked offer only under your hard requirements, the weights of the 'budget_traveller' profile (price 55%, duration 15%, departure 10%, flexibility 20%) and the scoring assumptions (price and duration are scored relative to the 47 acceptable offers). Other weights can give another result, so it is a recommendation under those assumptions, not a proof that nothing is better.
+
+  Next: 5 books an offer, 3 ranks again with other weights, 4 compares profiles, 2 shows every offer.
+
+MENU
+  1) New search
+  2) Show all ranked offers of the last search
+  3) Rank the last search again with another profile or your own weights
+  4) Compare the traveller profiles on the last search
+  5) Book an offer from the last search
+  6) Show saved bookings
+  7) Help
+  0) Quit
+Choose an option (0-7): 3
+
+Traveller profiles (they set how much each criterion counts):
+  1) budget_traveller     price 55%, duration 15%, departure 10%, flexibility 20%
+  2) business_traveller   price 15%, duration 40%, departure 30%, flexibility 15%
+  3) flexible_tourist     price 25%, duration 15%, departure 10%, flexibility 50%
+  4) environment_focused  price 20%, duration 10%, departure 5%, flexibility 10%, emissions 45%, transfers 10%
+  c) your own weights
+Profile (number or name, c = own, Enter = budget_traveller): business_traveller
+
+Request: Madrid to Malaga, 2026-07-12 to 2026-07-14, profile business_traveller
+
+HARD constraints (an offer that breaks one is removed before ranking):
+  - destination: Malaga
+  - departure between 2026-07-12 and 2026-07-14 (both days included)
+  - at least 1 seat available
+  - price at most EUR 49.90
+  - at most 1 transfer(s)
+  - ticket must be changeable
+
+SOFT preferences (only affect the score, never remove an offer):
+  - price: Lower price is better (weight 0.15)
+  - duration: Shorter journey is better (weight 0.40)
+  - departure: Departure close to the preferred time is better (weight 0.30)
+  - flexibility: Changeable / refundable fares are rewarded (weight 0.15)
+  - preferred departure time: 09:30
+  - profile: business_traveller
+  (price is both: the budget is hard, and within it a lower price scores higher)
+
+Filtering 1497 offers (each removed offer is counted once, under the first rule it breaks):
+  removed  1373   wrong destination (wanted Malaga)
+  removed    49   departs outside 2026-07-12 to 2026-07-14
+  removed     0   no seats left
+  removed     9   over budget (max EUR 49.90)
+  removed     0   too many transfers (max 1)
+  removed    19   ticket is not changeable
+Remaining: 47 offers
+
+RANKING (47 offers, best first). Scores are 0-100, higher is better; price, duration and
+emissions are scored relative to these offers, see docs/scoring.md.
+  #  Offer    Company         Departure       EUR    Dur Tr Fare     |  price durati depart flexib | TOTAL
+  1  OF-1032  Camino Express  14 Jul 08:30  40.00   6h35  0 Standard |   51.4   91.2   83.3   60.0 |  78.2
+  2  OF-0728  Camino Express  13 Jul 08:30  42.00   6h40  0 Standard |   40.0   88.2   83.3   60.0 |  75.3
+  3  OF-0428  Camino Express  12 Jul 08:30  43.50   6h35  0 Standard |   31.4   91.2   83.3   60.0 |  75.2
+  4  OF-1035  CostaLink       14 Jul 10:15  35.50   7h20  0 Standard |   77.1   64.7   87.5   60.0 |  72.7
+  5  OF-1034  CostaLink       14 Jul 10:15  45.00   7h20  0 Flex     |   22.9   64.7   87.5  100.0 |  70.6
+... 42 more offers not shown (use --top)
+
+Weight vs. real influence on the order (weight x spread of the scores):
+  price        weight  15%   influence  17%
+  duration     weight  40%   influence  35%
+  departure    weight  30%   influence  37%
+  flexibility  weight  15%   influence  11%
+
+RECOMMENDATION
+OF-1032 (Camino Express), departs 14 Jul 08:30, arrives 14 Jul 15:05, EUR 40.00: ranked first with 78.2 out of 100 for the 'business_traveller' profile.
+Advantages:
+  + duration: 6h35, 0h15 longer than the fastest (6h20)
+  + departure: departs 08:30, 60 min from the preferred 09:30
+  + a direct route, while 11 of the 47 acceptable offers have transfers
+Drawbacks:
+  - weakest point is price: EUR 40.00, EUR 8.50 above the cheapest (EUR 31.50) (score 51 out of 100)
+Compared with the runner-up OF-0728 (75.3): ahead on price (+1.7 points), duration (+1.2 points).
+This is the highest-ranked offer only under your hard requirements, the weights of the 'business_traveller' profile (price 15%, duration 40%, departure 30%, flexibility 15%) and the scoring assumptions (price and duration are scored relative to the 47 acceptable offers). Other weights can give another result, so it is a recommendation under those assumptions, not a proof that nothing is better.
+
+  Next: 5 books an offer, 3 ranks again with other weights, 4 compares profiles, 2 shows every offer.
+
+MENU
+  1) New search
+  2) Show all ranked offers of the last search
+  3) Rank the last search again with another profile or your own weights
+  4) Compare the traveller profiles on the last search
+  5) Book an offer from the last search
+  6) Show saved bookings
+  7) Help
+  0) Quit
+Choose an option (0-7): 5
+Which offer? Rank number or offer id (e.g. 1 or OF-1025): 2
+  Selected: rank 2, OF-0728, Camino Express, Mon 13 Jul 08:30 to 15:10, EUR 42.00, Standard fare (changeable: yes, refundable: no), 15 seats left
+Traveller name (letters only): Ana Pérez
+Book OF-0728 for Ana Pérez? Payment is simulated. [y/N]: n
+  Booking cancelled, nothing was saved.
+
+MENU
+  1) New search
+  2) Show all ranked offers of the last search
+  3) Rank the last search again with another profile or your own weights
+  4) Compare the traveller profiles on the last search
+  5) Book an offer from the last search
+  6) Show saved bookings
+  7) Help
+  0) Quit
+Choose an option (0-7): 5
+Which offer? Rank number or offer id (e.g. 1 or OF-1025): OF-1032
+  Selected: rank 1, OF-1032, Camino Express, Tue 14 Jul 08:30 to 15:05, EUR 40.00, Standard fare (changeable: yes, refundable: no), 39 seats left
+Traveller name (letters only): Ana 2
+  ! name may only contain letters, spaces, hyphens, apostrophes and full stops (no digits: no payment data is collected)  (q = cancel)
+Traveller name (letters only): Ana Pérez
+Book OF-1032 for Ana Pérez? Payment is simulated. [y/N]: y
+
+BOOKING CONFIRMED
+  Reference : BB-20260714-WK3DEG
+  Traveller : Ana Pérez
+  Journey   : Madrid to Malaga with Camino Express
+  Departs   : Tue 14 Jul 2026 08:30
+  Arrives   : Tue 14 Jul 2026 15:05 (6h35)
+  Fare      : Standard (changeable: yes, refundable: no, luggage: 20 kg)
+  Price     : EUR 40.00
+  Payment   : SIMULATED-PAID (simulated, no real payment was taken)
+  Offer     : OF-1032 (rank 1, score 78.2)
+  Seats left on this offer: 38
+
+MENU
+  1) New search
+  2) Show all ranked offers of the last search
+  3) Rank the last search again with another profile or your own weights
+  4) Compare the traveller profiles on the last search
+  5) Book an offer from the last search
+  6) Show saved bookings
+  7) Help
+  0) Quit
+Choose an option (0-7): 5
+Which offer? Rank number or offer id (e.g. 1 or OF-1025): OF-1032
+  Selected: rank 1, OF-1032, Camino Express, Tue 14 Jul 08:30 to 15:05, EUR 40.00, Standard fare (changeable: yes, refundable: no), 38 seats left
+Traveller name (letters only): ana pérez
+Book OF-1032 for ana pérez? Payment is simulated. [y/N]: y
+  ! ana pérez already has a booking on OF-1032. Use another name for another traveller.
+
+MENU
+  1) New search
+  2) Show all ranked offers of the last search
+  3) Rank the last search again with another profile or your own weights
+  4) Compare the traveller profiles on the last search
+  5) Book an offer from the last search
+  6) Show saved bookings
+  7) Help
+  0) Quit
+Choose an option (0-7): 6
+
+Reference            Traveller              Offer    Company         Departs              EUR
+BB-20260714-WK3DEG   Ana Pérez              OF-1032  Camino Express  14 Jul 08:30      40.00
+
+MENU
+  1) New search
+  2) Show all ranked offers of the last search
+  3) Rank the last search again with another profile or your own weights
+  4) Compare the traveller profiles on the last search
+  5) Book an offer from the last search
+  6) Show saved bookings
+  7) Help
+  0) Quit
+Choose an option (0-7): 0
+Goodbye.

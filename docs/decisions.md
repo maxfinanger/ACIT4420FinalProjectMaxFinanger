@@ -290,6 +290,25 @@ from here. Decisions marked "preliminary" will be confirmed in the phase named.
 - **Reason:** Options make the booking reproducible and testable, and a supervisor can run it without typing. Allowing only offers from the
   ranking means a booking can never break a hard constraint. A rank number is quick to type, an id is stable when the ranking changes.
 
+## D21. The interactive menu uses the same functions, forgiving input, and an explicit confirmation
+- **Status:** Decided
+- **Decision:** `python main.py --interactive` starts a numbered menu (search, show all, rank again, compare profiles, book,
+  bookings, help, quit). It calls the same functions as the command-line options and prints with the same `display.py`. Every
+  answer goes through a small pure parser. Wrong answers get a message that names what was expected (and a "did you mean" for destinations),
+  and the question is asked again. Input is forgiving: case and accents are ignored, a unique start of a name is enough, dates can be
+  ISO or day/month/year, decimals can use a comma, times can be `9` or `9.30`. `q` cancels a question, 8 bad answers in a row cancel it,
+  Enter takes the default, and a booking is only saved after an explicit `y` (the default is no). The input function can be replaced so
+  that complete sessions are tested with scripted answers. Plain `python main.py` still prints the summary only; the menu needs `--interactive`.
+- **Alternatives:** A graphical or web interface (more work, and the report is assessed on design and evaluation rather than on the
+  interface); starting the menu whenever the program is run without options (breaks scripts and the non-interactive tests); a menu library
+  such as `curses` (breaks on some terminals, harder to test); stricter parsing (shorter code, but more frustrating to use).
+- **Reason:** The spec asks for an "intuitive" interface and offers a GUI/web interface as an optional extension. A guided text menu is
+  intuitive for the core task, runs everywhere with the standard library (D1), and, because the answers are parsed by pure functions and the
+  input can be injected, it is fully testable. Sharing `display.py` means the two ways of using the program cannot drift apart. The explicit
+  confirmation follows from booking being the one action that changes saved data.
+- **Not built (future work):** cancellation and refunds, vouchers, return and multi-city journeys, waiting lists, seat selection, group bookings,
+  a graphical or web interface. The core requirements are complete without them, and the time is better spent on evaluation (Phase 9).
+
 ---
 
 ## Still to decide

@@ -43,6 +43,9 @@ python scripts/generate_data.py
 # see the validation reject the deliberately broken test file
 python main.py --offers data/offers_invalid.csv
 
+# guided menu: search, rank, compare profiles and book step by step
+python main.py --interactive
+
 # filter and rank with the example request from the spec
 python main.py --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 50 --max-transfers 1 --changeable
 
@@ -68,7 +71,7 @@ All commands need to be run from the project root, because the data and config
 paths are relative. The generated data files are already in the repository, so the
 generator only has to be run if I change it.
 
-At the moment `main.py` loads the companies, destinations, profiles and offers,
+`python main.py --interactive` starts a guided menu (see `docs/interface.md`). Without options, `main.py` loads the companies, destinations, profiles and offers,
 validates the offers and prints a short summary (plus the rejected rows, if any).
 If a request is given (`--destination ...`) it also applies the hard constraints, shows
 what was removed and why, and ranks the rest with the weighted model (score of every
@@ -103,7 +106,8 @@ busbidder/
 │   └── bookings.json        # created at runtime (git-ignored)
 ├── scripts/
 │   ├── generate_data.py     # makes the dataset (fixed seed, reproducible)
-│   └── compare_profiles.py  # makes docs/profile_comparison.md (reproducible)
+│   ├── compare_profiles.py  # makes docs/profile_comparison.md (reproducible)
+│   └── demo_interactive.py  # transcript of a scripted interactive session (reproducible)
 ├── busbidder/               # the application package
 │   ├── models.py            # dataclasses: Company, Offer, TravelRequest, Booking
 │   ├── exceptions.py        # custom exception hierarchy
@@ -118,7 +122,9 @@ busbidder/
 │   ├── explain.py           # generated explanation of the top offer (Section 6 in spec)
 │   ├── comparison.py        # compare profiles: which winner ranks where
 │   ├── booking.py           # BookingService: seats, references, bookings file (Section 6 in spec)
-│   └── cli.py               # command-line interface
+│   ├── display.py           # everything that is printed (shared by the CLI and the menu)
+│   ├── interactive.py       # interactive menu and the parsers for its questions
+│   └── cli.py               # command-line options
 ├── tests/
 │   ├── conftest.py          # shared fixtures (valid offer and row)
 │   ├── test_basics.py
@@ -128,6 +134,7 @@ busbidder/
 │   ├── test_ranking.py      # criteria, weights, ranking, ties, influence, CLI
 │   ├── test_explain.py      # the generated explanation
 │   ├── test_booking.py      # booking, seat accounting, corrupt files, selection, CLI
+│   ├── test_interactive.py  # the menu: every parser, scripted sessions, mistakes
 │   ├── test_profile_comparison.py   # profile comparison, generated document, CLI
 │   ├── test_scoring_config.py   # scoring parameters and their file
 │   ├── test_validation.py   # validation rules, boundaries, regex patterns
@@ -142,6 +149,7 @@ busbidder/
 │   ├── scoring.md           # the scoring model, worked example, design questions, limitations
 │   ├── explanation.md       # how the explanation is generated, example, limitations
 │   ├── booking.md           # booking flow, rules, file format, limitations
+│   ├── interface.md         # the interactive menu: input rules, behaviour, limitations
 │   ├── profile_comparison.md    # the 4 profiles on the same request (generated)
 │   ├── examples/            # saved program outputs used as evidence in the report
 │   ├── architecture.png     # components and flow of information
@@ -200,6 +208,9 @@ Design choices from Phase 1 (reasons and alternatives are in `docs/decisions.md`
 - **Booking (Phase 7):** `data/bookings.json` is the only record of seats sold (the offers file is never changed),
   it is re-read before every booking and written atomically, and a booking keeps its own copy of the fare
   conditions. See `docs/booking.md` (D19, D20).
+- **Interface (Phase 8):** the menu uses the same functions and the same printing as the command-line options.
+  Answers go through small tested parsers with helpful messages, and nothing is saved without a `y`
+  (`docs/interface.md`, D21).
 - **`Marketplace`** holds the data and runs the filter-then-rank pipeline, so the
   CLI only has to talk to one class.
 
@@ -209,7 +220,7 @@ Design choices from Phase 1 (reasons and alternatives are in `docs/decisions.md`
 
 Tests are in `tests/` and run with `python -m pytest -v`.
 
-Right now there are 405 tests. They cover:
+Right now there are 561 tests. They cover:
 
 - **Design:** fare conditions, the abstract constraint, the budget boundary, the
   criteria registry, overnight durations, weight validation.
@@ -238,6 +249,9 @@ Right now there are 405 tests. They cover:
   offer cannot oversell, seat counts after a restart, 20 kinds of corrupt bookings file (never overwritten), failed saves,
   unique references and collisions, choosing from the ranking, a sold-out offer disappearing from the next search,
   and the CLI exit codes. I also broke the booking code on purpose in five ways to check that the tests notice.
+- **Interactive menu:** every parser with valid, invalid and boundary input, and complete sessions with scripted
+  answers (mistakes, `q`, end of input, no results, re-ranking, comparing, booking, declining, duplicates, a corrupt
+  bookings file). Five deliberate breakages were all caught.
 
 As each phase is finished I will add tests for normal input, invalid input,
 missing data and boundary cases, as the spec requires. Hand-calculated expected
@@ -330,10 +344,11 @@ I commit after every phase.
 - [x] Clear confirmation message, simulated payment status only (no real card data)
 - [x] Tests: last seat, sold out, double booking
 
-### [ ] Phase 8: Interface polish
-- [ ] Interactive CLI menu: enter request, see filtered and ranked offers, book
-- [ ] Input validation with helpful error messages
+### [x] Phase 8: Interface polish
+- [x] Interactive CLI menu: enter request, see filtered and ranked offers, book (`--interactive`)
+- [x] Input validation with helpful error messages (the question is asked again, with an example)
 - [ ] Optional extensions if there is time: cancellation/refund, vouchers, return trips, GUI/web
+      (not built, listed as future work in `docs/interface.md` and D21)
 
 ### [ ] Phase 9: Evaluation
 - [ ] Run experiments where I change the weights and see how the ranking changes
