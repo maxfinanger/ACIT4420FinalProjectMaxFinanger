@@ -53,10 +53,12 @@ destination) is rejected with a clear message and exit code 2 before any filteri
 - For the spec example (Malaga, 12-14 July, max EUR 50, at most 1 transfer, changeable
   required) 47 of 1497 offers remain, from all five companies. 1373 are removed only
   because of the destination.
-- Strict requirements can leave one company: Barcelona, 11-15 July, max EUR 45, direct,
-  at least 20 kg luggage and at most 9 h leaves 16 offers, all from NocheVia. This is
-  an unfair-outcome example for the report: the hard constraints, not the scoring, decide
-  the winner.
+- Strict requirements narrow the field of companies, but only slowly. **Correction:** an earlier version of this
+  file said that Barcelona, 11-15 July, max EUR 45, direct, at least 20 kg and at most 9 h leaves "16 offers, all from
+  NocheVia". That was wrong. The 16 offers come from four companies (Camino Express, CostaLink, NocheVia, VerdeBus). The mistake
+  came from reading the first ten lines of a list sorted by departure time, where NocheVia's early-morning
+  departures come first. The measured picture is in `docs/evaluation.md` section 5c: a single company
+  only remains for the strictest combination tested, and then for few destinations.
 - Hard constraints are binary. An offer EUR 0.01 over the budget is removed completely
   (a "cliff"), while an offer exactly at the budget is kept. This is the main
   weakness of the hard/soft split and a good limitation to discuss.

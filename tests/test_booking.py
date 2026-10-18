@@ -41,7 +41,7 @@ def names(n):
 @pytest.mark.parametrize("raw, clean", [
     ("Ana Pérez", "Ana Pérez"), ("  Mary-Jane   O'Neil ", "Mary-Jane O'Neil"),
     ("José María", "José María"), ("李 雷", "李 雷"), ("St. John", "St. John"),
-    ("a" * 60, "a" * 60),
+    ("a" * 60, "a" * 60), ("O’Neil", "O'Neil"), ("D‘Angelo", "D'Angelo"),
 ])
 def test_valid_names_are_accepted_and_tidied(raw, clean):
     assert clean_traveller_name(raw) == clean
@@ -594,3 +594,11 @@ def test_cli_corrupt_bookings_file_is_a_clear_error_and_is_left_alone(capsys, tm
 def test_cli_without_booking_flags_never_writes_the_bookings_file(capsys, store):
     assert run(REQ + ["--bookings", store]) == 0
     assert not os.path.exists(store)
+
+
+def test_curly_and_straight_apostrophes_are_the_same_name_for_duplicate_detection(service):
+    offer = make(seats=5)
+    service.book(offer, "O’Neil")
+    with pytest.raises(DuplicateBookingError):
+        service.book(offer, "O'Neil")
+    assert service.load()[0].traveller_name == "O'Neil"

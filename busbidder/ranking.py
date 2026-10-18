@@ -52,30 +52,34 @@ def parse_weights(text: str) -> dict:
     return weights
 
 
-def rank_offers(offers: list[Offer], request: TravelRequest,
-                weights: dict) -> list[RankedOffer]:
-    """Score every offer with each weighted criterion and sort best first.
+def compute_scores(candidates: list[Offer], request: TravelRequest,
+                   names: list[str]) -> list[dict[str, float]]:
+    """The 0-100 score of every candidate on every named criterion (same order as `candidates`).
 
-    - The input list is not changed, and the result does not depend on its order.
-    - Ties (equal total to 2 decimals) are broken by: lower price, shorter
-      journey, earlier departure, then offer id. Ranks are 1, 2, 3 ... without gaps,
-      and `tie_broken` marks the offers that needed a tie-break (decision D16).
+    The scores do NOT depend on the weights, so an experiment that tries many weight vectors on the same
+    offers can compute them once and call `assemble_ranking` many times.
     """
-    validate_weights(weights)
-    candidates = list(offers)
-    if not candidates:
-        return []
-
-    ranked: list[RankedOffer] = []
+    all_scores = []
     for offer in candidates:
         scores = {}
-        for name in weights:
+        for name in names:
             score = get_criterion(name).func(offer, candidates, request)
             if not isinstance(score, (int, float)) or not math.isfinite(score) \
                     or not 0.0 <= score <= 100.0:
                 raise ScoringError(f"Criterion '{name}' gave {score!r} for {offer.offer_id}, "
                                    "expected a number from 0 to 100")
             scores[name] = float(score)
+        all_scores.append(scores)
+    return all_scores
+
+
+def assemble_ranking(candidates: list[Offer], all_scores: list[dict[str, float]],
+                     weights: dict) -> list[RankedOffer]:
+    """Combine precomputed criterion scores with weights, sort, break ties, and set ranks."""
+    validate_weights(weights)
+    ranked: list[RankedOffer] = []
+    for offer, scores in zip(candidates, all_scores):
+        scores = {name: scores[name] for name in weights}
         contributions = {name: weights[name] * scores[name] for name in weights}
         ranked.append(RankedOffer(offer, scores, sum(contributions.values()),
                                   contributions=contributions))
@@ -90,6 +94,22 @@ def rank_offers(offers: list[Offer], request: TravelRequest,
         same_as_next = i + 1 < len(ranked) and round(ranked[i + 1].total_score, TIE_DECIMALS) == round(r.total_score, TIE_DECIMALS)
         r.tie_broken = same_as_prev or same_as_next
     return ranked
+
+
+def rank_offers(offers: list[Offer], request: TravelRequest,
+                weights: dict) -> list[RankedOffer]:
+    """Score every offer with each weighted criterion and sort best first.
+
+    - The input list is not changed, and the result does not depend on its order.
+    - Ties (equal total to 2 decimals) are broken by: lower price, shorter
+      journey, earlier departure, then offer id. Ranks are 1, 2, 3 ... without gaps,
+      and `tie_broken` marks the offers that needed a tie-break (decision D16).
+    """
+    validate_weights(weights)
+    candidates = list(offers)
+    if not candidates:
+        return []
+    return assemble_ranking(candidates, compute_scores(candidates, request, list(weights)), weights)
 
 
 def influence_share(ranked: list[RankedOffer], weights: dict) -> dict[str, float]:

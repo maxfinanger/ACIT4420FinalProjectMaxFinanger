@@ -60,8 +60,9 @@ python main.py --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 5
 python main.py --destination Malaga --from 2026-07-12 --to 2026-07-14 --budget 50 --max-transfers 1 --changeable --book 1 --name "Ana Perez"
 python main.py --show-bookings
 
-# regenerate docs/profile_comparison.md (reproducible)
+# regenerate docs/profile_comparison.md and docs/evaluation.md (reproducible, fixed seeds)
 python scripts/compare_profiles.py
+python scripts/evaluate.py
 ```
 
 `python main.py --help` lists all request options (`--max-hours`, `--min-luggage`, `--profile`, `--weights`, `--top`, ...).
@@ -107,6 +108,7 @@ busbidder/
 ├── scripts/
 │   ├── generate_data.py     # makes the dataset (fixed seed, reproducible)
 │   ├── compare_profiles.py  # makes docs/profile_comparison.md (reproducible)
+│   ├── evaluate.py          # runs the Phase 9 experiments and writes docs/evaluation.md
 │   └── demo_interactive.py  # transcript of a scripted interactive session (reproducible)
 ├── busbidder/               # the application package
 │   ├── models.py            # dataclasses: Company, Offer, TravelRequest, Booking
@@ -119,6 +121,7 @@ busbidder/
 │   ├── validation.py        # business rules and regex patterns    (Task 2)
 │   ├── filtering.py         # hard-constraint filtering            (Task 3)
 │   ├── ranking.py           # weights, weighted ranking, ties, influence (Section 5 in spec)
+│   ├── evaluation.py        # building blocks for the experiments (weights, correlations, ...)
 │   ├── explain.py           # generated explanation of the top offer (Section 6 in spec)
 │   ├── comparison.py        # compare profiles: which winner ranks where
 │   ├── booking.py           # BookingService: seats, references, bookings file (Section 6 in spec)
@@ -135,6 +138,8 @@ busbidder/
 │   ├── test_explain.py      # the generated explanation
 │   ├── test_booking.py      # booking, seat accounting, corrupt files, selection, CLI
 │   ├── test_interactive.py  # the menu: every parser, scripted sessions, mistakes
+│   ├── test_evaluation.py   # the experiment building blocks, checked against hand calculations
+│   ├── test_evaluation_report.py   # docs/evaluation.md equals what the script generates
 │   ├── test_profile_comparison.py   # profile comparison, generated document, CLI
 │   ├── test_scoring_config.py   # scoring parameters and their file
 │   ├── test_validation.py   # validation rules, boundaries, regex patterns
@@ -150,6 +155,8 @@ busbidder/
 │   ├── explanation.md       # how the explanation is generated, example, limitations
 │   ├── booking.md           # booking flow, rules, file format, limitations
 │   ├── interface.md         # the interactive menu: input rules, behaviour, limitations
+│   ├── evaluation.md        # the experiments and their results (generated)
+│   ├── limitations.md       # limitations, possible unfair outcomes, improvements, what I learned
 │   ├── profile_comparison.md    # the 4 profiles on the same request (generated)
 │   ├── examples/            # saved program outputs used as evidence in the report
 │   ├── architecture.png     # components and flow of information
@@ -211,6 +218,8 @@ Design choices from Phase 1 (reasons and alternatives are in `docs/decisions.md`
 - **Interface (Phase 8):** the menu uses the same functions and the same printing as the command-line options.
   Answers go through small tested parsers with helpful messages, and nothing is saved without a `y`
   (`docs/interface.md`, D21).
+- **Evaluation (Phase 9):** the experiments are a script that runs on the real code with fixed seeds and writes
+  `docs/evaluation.md`; the findings are computed from the numbers, and a test keeps the file up to date (D22).
 - **`Marketplace`** holds the data and runs the filter-then-rank pipeline, so the
   CLI only has to talk to one class.
 
@@ -220,7 +229,7 @@ Design choices from Phase 1 (reasons and alternatives are in `docs/decisions.md`
 
 Tests are in `tests/` and run with `python -m pytest -v`.
 
-Right now there are 561 tests. They cover:
+Right now there are 595 tests. They cover:
 
 - **Design:** fare conditions, the abstract constraint, the budget boundary, the
   criteria registry, overnight durations, weight validation.
@@ -252,6 +261,9 @@ Right now there are 561 tests. They cover:
 - **Interactive menu:** every parser with valid, invalid and boundary input, and complete sessions with scripted
   answers (mistakes, `q`, end of input, no results, re-ranking, comparing, booking, declining, duplicates, a corrupt
   bookings file). Five deliberate breakages were all caught.
+- **Evaluation:** the experiment building blocks against hand calculations (the weight range in which a winner stays, rank
+  correlation with ties, random weights), and that the committed `docs/evaluation.md` equals what the script generates, with
+  a few numbers re-checked through the filter on its own.
 
 As each phase is finished I will add tests for normal input, invalid input,
 missing data and boundary cases, as the spec requires. Hand-calculated expected
@@ -350,13 +362,13 @@ I commit after every phase.
 - [ ] Optional extensions if there is time: cancellation/refund, vouchers, return trips, GUI/web
       (not built, listed as future work in `docs/interface.md` and D21)
 
-### [ ] Phase 9: Evaluation
-- [ ] Run experiments where I change the weights and see how the ranking changes
-- [ ] Check sensitivity: does one criterion dominate (e.g. when the price range is wide)?
-- [ ] Look for unfair or unreasonable outcomes (e.g. overnight buses being
-      penalized by the departure convenience criterion)
-- [ ] Write down limitations and what I would improve
-- [ ] Save screenshots, tables and log excerpts to `docs/`
+### [x] Phase 9: Evaluation
+- [x] Run experiments where I change the weights and see how the ranking changes (`docs/evaluation.md` section 2)
+- [x] Check sensitivity: does one criterion dominate (e.g. when the price range is wide)? (sections 3 and 4)
+- [x] Look for unfair or unreasonable outcomes (e.g. overnight buses being
+      penalized by the departure convenience criterion) (section 5)
+- [x] Write down limitations and what I would improve (`docs/limitations.md`)
+- [x] Save screenshots, tables and log excerpts to `docs/` (`docs/examples/` has text transcripts, `docs/evaluation.md` the tables)
 
 ### [ ] Phase 10: Report and submission
 - [ ] Write the report (PDF), see the checklist in section 6
@@ -379,7 +391,7 @@ as far as possible.
 | Flowchart / architecture diagram | Phase 1 |
 | Dataset description and validation | Phases 2-3 (`docs/dataset.md`, `docs/validation.md`) |
 | At least 3 traveller-profile comparisons | Phase 6 (`docs/profile_comparison.md`) |
-| Limitations and possible unfair outcomes | Phase 9 |
+| Limitations and possible unfair outcomes | Phase 9 (`docs/limitations.md`, `docs/evaluation.md`) |
 | Generative-AI declaration (what for, how it was checked, what I changed) | notes kept during the project, see section 8 |
 
 Grading weights from the spec, which I use to decide where to spend time:
@@ -413,26 +425,19 @@ Checked against the spec, section 7.
 
 ## 8. Use of generative AI
 
-I use Claude (Anthropic) as an assistant during the project. This is the general
-picture of how, and I will keep it up to date if the way I use it changes.
+I use Claude (Anthropic) as an assistant during the project. This is how i have used the model, and a explanation of what is my work specifically and where the tool is used along side my own efforts.
 
 **What I use it for**
 
-- Planning and structure: breaking the specification into phases, the structure of this
-  README, and the outline of the report with guidance comments.
+- Planning and structure: breaking the specification into phases, the structure of this README, and the outline of the report with guidance comments.
 - Code: first drafts of the project skeleton, the class design, the data generation
   script and the tests.
-- Illustrations: the architecture diagram and the class diagram (Graphviz sources are
-  in `docs/diagrams/`).
-- General questions and discussing design alternatives (for example which
-  metaprogramming technique to use).
+- Illustrations: the architecture diagram and the class diagram (Graphviz sources are in `docs/diagrams/`).
+- General questions and discussing design alternatives, for example which metaprogramming technique to use.
 
 **How I check it**
 
-I run the program and the tests, read through the generated code and documents, check
-the diagrams against the code, and compare everything with the specification. The data
-generator is checked with tests, and the generated dataset is checked against the
-summary statistics in `docs/dataset.md`.
+I run the program and the tests, read through the generated code and documents, check the diagrams against the code, and compare everything with the specification. The data generator is checked with tests, and the generated dataset is checked against the summary statistics in `docs/dataset.md`.
 
 **What is mine**
 

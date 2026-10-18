@@ -309,8 +309,25 @@ from here. Decisions marked "preliminary" will be confirmed in the phase named.
 - **Not built (future work):** cancellation and refunds, vouchers, return and multi-city journeys, waiting lists, seat selection, group bookings,
   a graphical or web interface. The core requirements are complete without them, and the time is better spent on evaluation (Phase 9).
 
+## D22. The evaluation is a generated report of experiments on the real code
+- **Status:** Decided
+- **Decision:** `scripts/evaluate.py` runs the experiments on the real filter, scoring and ranking, with fixed random seeds and no timestamps, and writes
+  `docs/evaluation.md`. A test checks that the committed file equals the script's output. The experiments are: are the rankings reasonable (winner position
+  and rank correlation per raw value); weight sensitivity (one weight at a time, the range in which the winner stays, random changes to all weights, completely
+  random weights); whether one criterion dominates (weight versus influence, across different requests); sensitivity to the numbers in `config/scoring.json`;
+  possible unfair outcomes (night buses, the budget cliff, how strict requirements narrow the field of companies, which companies win across the market,
+  rank reversal, and the incentive to leave out data); and reproducibility fingerprints. The key findings at the top are computed from the numbers.
+  `docs/limitations.md` is the hand-written reflection and quotes its numbers.
+- **Alternatives:** Running experiments in a notebook and pasting numbers into the report; only a few hand-picked examples; statistical tests on
+  many random requests.
+- **Reason:** The evaluation is 20% of the grade and the report must be reproducible. A script means every number can be regenerated, a test stops the file from
+  going stale (it already caught one stale document), and computing the findings from the numbers stops me from writing what I expect instead of what I measure.
+  This mattered twice: a hypothesis about price spread turned out to be wrong, and a hand-copied observation in an earlier document was false.
+- **Trade-off:** the experiments use one main request (the spec example) plus scenarios, and the random experiments use one seed. They show how the model
+  behaves, not how real travellers behave. The reasoning is in `docs/limitations.md`.
+
 ---
 
 ## Still to decide
 
-- Whether to test how sensitive the ranking is to the numbers in `config/scoring.json` (Phase 9, probably yes).
+- Which parts of `docs/evaluation.md` and `docs/limitations.md` go into the report and in which order (Phase 10).

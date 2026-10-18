@@ -113,7 +113,8 @@ def clean_traveller_name(name) -> str:
     """Return the name with tidy spaces, or raise ValidationError("invalid_name")."""
     if not isinstance(name, str):
         raise ValidationError("invalid_name", "name must be text")
-    cleaned = " ".join(name.split())
+    # phone keyboards type the curly apostrophe (O’Neil); store the plain one so the same name always matches
+    cleaned = " ".join(name.replace("\u2019", "'").replace("\u2018", "'").split())
     if not cleaned:
         raise ValidationError("invalid_name", "name must not be empty")
     if len(cleaned) > MAX_NAME_LENGTH:
