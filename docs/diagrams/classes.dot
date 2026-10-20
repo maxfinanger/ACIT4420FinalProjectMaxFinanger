@@ -1,29 +1,20 @@
 digraph classes {
-  rankdir=TB; fontname="Helvetica"; nodesep=0.4; ranksep=0.55;
-  node [shape=record, style=filled, fillcolor="#FFFFFF", fontname="Helvetica", fontsize=10, color="#555555"];
-  edge [fontname="Helvetica", fontsize=9, color="#555555"];
+  rankdir=TB; fontname="Helvetica"; nodesep=0.4; ranksep=0.5;
+  node [shape=record, style=filled, fillcolor="#FFFFFF", fontname="Helvetica", fontsize=12, color="#555555"];
+  edge [fontname="Helvetica", fontsize=10, color="#555555"];
 
-  Marketplace [label="{Marketplace|companies\ldestinations\loffers\lprofiles\l|search(request, weights)\l}", fillcolor="#D5EBD5"];
-  TravelRequest [label="{TravelRequest|HARD: destination, dates,\l  max_budget, max_transfers,\l  require_changeable\lSOFT: preferred_departure,\l  profile\l}"];
-  Offer [label="{Offer|offer_id, company, destination\ltravel_date, departure/arrival\lprice, transfers, seats, rating\l|duration_minutes\l}"];
-  FareConditions [label="{FareConditions (frozen)|changeable\lrefundable\lluggage_kg\l}"];
-  RankedOffer [label="{RankedOffer|offer\lcriterion_scores\ltotal_score, rank\l}"];
-  Booking [label="{Booking|reference, offer_id\ltraveller_name, price_paid\lfare, payment_status\l}"];
-  BookingService [label="{BookingService|store_path\l|seats_left(offer)\lbook(offer, name)\l}", fillcolor="#FBF1E0"];
-
-  Constraint [label="{\<\<abstract\>\>\nConstraint||is_satisfied(offer, request)\lreason(request)\l}", fillcolor="#E8F0FA"];
-  Subs [label="{BudgetConstraint\lDestinationConstraint\lTravelWindowConstraint\lSeatsConstraint\lMaxTransfersConstraint\lFlexibilityConstraint\l}", fillcolor="#E8F0FA"];
-  Registry [label="{criteria registry|@register_criterion(name)\l|price, duration,\ldeparture, flexibility\l(+ optional extras)\l}", fillcolor="#EAF5EA"];
+  Marketplace [label="{Marketplace|companies, destinations\loffers, profiles, bookings\l|filter(request)\lsearch(request, weights)\lcompare_profiles(request)\lbook(offer, name)\l}", fillcolor="#D5EBD5"];
+  TravelRequest [label="{TravelRequest|HARD: destination, dates,\l  max_budget, max_transfers,\l  require_changeable,\l  min_luggage_kg,\l  max_duration\lSOFT: preferred_departure,\l  profile\l}"];
+  Registry [label="{criteria registry|@register_criterion(name)\l|price, duration, departure,\lflexibility, transfers,\lrating, emissions\l}", fillcolor="#EAF5EA"];
+  Constraint [label="{\<\<abstract\>\>\nConstraint||is_active(request)\lis_satisfied(offer, request)\lreason(request)\l}", fillcolor="#E8F0FA"];
+  Subs [label="{DestinationConstraint\lTravelWindowConstraint\lSeatsConstraint\lBudgetConstraint\lMaxTransfersConstraint\lMaxDurationConstraint\lLuggageConstraint\lFlexibilityConstraint\l}", fillcolor="#E8F0FA"];
+  Ranked [label="{RankedOffer|offer\lcriterion_scores\lcontributions\ltotal_score, rank\ltie_broken\l}"];
 
   Subs -> Constraint [arrowhead=empty, label=" inherits"];
-  Offer -> FareConditions [arrowhead=diamond, label=" has-a"];
-  Booking -> FareConditions [arrowhead=diamond, label=" copy of"];
-  RankedOffer -> Offer [arrowhead=diamond, label=" has-a"];
-  Marketplace -> Constraint [arrowhead=odiamond, label=" uses many"];
-  Marketplace -> Registry [arrowhead=odiamond, label=" via ranking"];
-  Marketplace -> Offer [arrowhead=odiamond, label=" holds many"];
   Marketplace -> TravelRequest [style=dashed, label=" takes"];
-  Marketplace -> RankedOffer [style=dashed, label=" returns"];
-  BookingService -> Booking [style=dashed, label=" creates"];
-  BookingService -> Offer [style=dashed, label=" reads"];
+  Marketplace -> Registry [arrowhead=odiamond, label=" via ranking"];
+  Marketplace -> Constraint [arrowhead=odiamond, label=" uses many"];
+  Marketplace -> Ranked [style=dashed, label=" returns"];
+  {rank=same; TravelRequest; Registry; Constraint}
+  {rank=same; Subs; Ranked}
 }

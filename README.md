@@ -169,10 +169,11 @@ busbidder/
 │   ├── report_guide.md      # what to write in each section of the report, with the numbers
 │   ├── examples/            # saved program outputs used as evidence in the report
 │   ├── architecture.png     # components and flow of information
-│   ├── class_diagram.png    # main classes and their relations
+│   ├── class_diagram.png    # the marketplace and its collaborators
+│   ├── class_diagram_data.png   # data classes and the exception hierarchy
 │   └── diagrams/            # Graphviz sources for the two diagrams
 └── report/
-    └── BusBidder_Report.docx   # report skeleton (written in Word)
+    └── BusBidder_Report.docx   # the report (Word; export to PDF for submission)
 ```
 
 ---
@@ -380,8 +381,8 @@ I commit after every phase.
 - [x] Write down limitations and what I would improve (`docs/limitations.md`)
 - [x] Save screenshots, tables and log excerpts to `docs/` (`docs/examples/` has text transcripts, `docs/evaluation.md` the tables)
 
-### [ ] Phase 10: Report and submission (code and documents done, the report text is mine to write)
-- [ ] Write the report (PDF), see the checklist in section 6
+### [ ] Phase 10: Report and submission 
+- [X] Write the report (PDF), see the checklist in section 6
 - [x] Final README check: Python version, libraries, exact run and test commands
 - [x] Final audit of the program: no development wording in the terminal output, works from any folder, odd input (nan, empty values) refused with a message
 - [x] Check that a fresh clone works: `pip install -r requirements.txt`, then `python main.py`, then `pytest`

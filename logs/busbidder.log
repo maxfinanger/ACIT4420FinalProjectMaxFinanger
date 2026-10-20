@@ -1,5 +1,0 @@
-2026-10-20 10:22:49,450 | INFO | BusBidder started
-2026-10-20 10:22:49,452 | INFO | Loaded 5 companies from data/companies.csv
-2026-10-20 10:22:49,453 | INFO | Loaded 15 destinations from data/destinations.csv
-2026-10-20 10:22:49,485 | INFO | Loaded offers from data/offers.csv: 1497 accepted, 0 rejected (of 1497 rows)
-2026-10-20 10:22:49,485 | INFO | Applied 0 saved booking(s) to the offers
