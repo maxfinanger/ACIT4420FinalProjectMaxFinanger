@@ -1,4 +1,4 @@
-# Hard and soft: how the filter works (Phase 4)
+# Hard and soft: how the filter works
 
 Code: `busbidder/filtering.py` (constraints and `filter_offers`), `busbidder/validation.py`
 (`validate_request`), `busbidder/marketplace.py` (`Marketplace.filter`), `busbidder/cli.py`

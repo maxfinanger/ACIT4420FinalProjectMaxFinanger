@@ -18,7 +18,7 @@ The question I'm trying to answer in this project:
 
 | Item | Value |
 |---|---|
-| Python version | 3.10 or newer (I develop on 3.12) |
+| Python version | 3.10 or newer (tested on 3.12 and 3.13) |
 | Libraries | Standard library only, plus `pytest` for the tests |
 | Entry point | `main.py` |
 | Input data | `data/` (CSV files) and `config/` (JSON) |
@@ -63,14 +63,18 @@ python main.py --show-bookings
 # regenerate docs/profile_comparison.md and docs/evaluation.md (reproducible, fixed seeds)
 python scripts/compare_profiles.py
 python scripts/evaluate.py
+python scripts/make_examples.py      # the saved outputs in docs/examples/
+
+# version
+python main.py --version
 ```
 
 `python main.py --help` lists all request options (`--max-hours`, `--min-luggage`, `--profile`, `--weights`, `--top`, ...).
 Profiles: `budget_traveller`, `business_traveller`, `flexible_tourist`, `environment_focused`.
 
-All commands need to be run from the project root, because the data and config
-paths are relative. The generated data files are already in the repository, so the
-generator only has to be run if I change it.
+The program also works when started from another folder (`python /path/to/main.py ...`): data and config
+are looked up in the current folder first and then in the project folder. The generated data files are
+already in the repository, so the generator only has to be run if I change it.
 
 `python main.py --interactive` starts a guided menu (see `docs/interface.md`). Without options, `main.py` loads the companies, destinations, profiles and offers,
 validates the offers and prints a short summary (plus the rejected rows, if any).
@@ -108,12 +112,14 @@ busbidder/
 ├── scripts/
 │   ├── generate_data.py     # makes the dataset (fixed seed, reproducible)
 │   ├── compare_profiles.py  # makes docs/profile_comparison.md (reproducible)
-│   ├── evaluate.py          # runs the Phase 9 experiments and writes docs/evaluation.md
+│   ├── evaluate.py          # runs the experiments and writes docs/evaluation.md
+│   ├── make_examples.py     # regenerates the saved outputs in docs/examples/ (reproducible)
 │   └── demo_interactive.py  # transcript of a scripted interactive session (reproducible)
 ├── busbidder/               # the application package
 │   ├── models.py            # dataclasses: Company, Offer, TravelRequest, Booking
 │   ├── exceptions.py        # custom exception hierarchy
 │   ├── log_setup.py         # logging to logs/busbidder.log
+│   ├── paths.py             # finds data/config files and places output files, from any folder
 │   ├── criteria.py          # scoring criteria, registered with a decorator
 │   ├── scoring_config.py    # parameters of the scoring model (config/scoring.json)
 │   ├── marketplace.py       # Marketplace: runs filter -> rank
@@ -131,6 +137,8 @@ busbidder/
 ├── tests/
 │   ├── conftest.py          # shared fixtures (valid offer and row)
 │   ├── test_basics.py
+│   ├── test_delivery.py     # terminal output has only task messages, any folder, odd input
+│   ├── test_examples.py     # docs/examples equals what the program prints
 │   ├── test_design.py       # composition, constraints, criteria registry
 │   ├── test_dataset.py      # the generated dataset and the invalid test file
 │   ├── test_filtering.py    # hard constraints, filter report, request validation, CLI
@@ -158,6 +166,7 @@ busbidder/
 │   ├── evaluation.md        # the experiments and their results (generated)
 │   ├── limitations.md       # limitations, possible unfair outcomes, improvements, what I learned
 │   ├── profile_comparison.md    # the 4 profiles on the same request (generated)
+│   ├── report_guide.md      # what to write in each section of the report, with the numbers
 │   ├── examples/            # saved program outputs used as evidence in the report
 │   ├── architecture.png     # components and flow of information
 │   ├── class_diagram.png    # main classes and their relations
@@ -229,8 +238,9 @@ Design choices from Phase 1 (reasons and alternatives are in `docs/decisions.md`
 
 Tests are in `tests/` and run with `python -m pytest -v`.
 
-Right now there are 595 tests. They cover:
+Right now there are 617 tests. They cover:
 
+- **Delivery:** the terminal output has only task messages (no development wording), the program works from another folder, `nan`/`inf`/empty values are refused with a message, an ASCII-only console does not crash, and `docs/examples/` equals what the program prints today.
 - **Design:** fare conditions, the abstract constraint, the budget boundary, the
   criteria registry, overnight durations, weight validation.
 - **Dataset:** reproducible generation, 75+ company-destination combinations, unique ids,
@@ -370,11 +380,12 @@ I commit after every phase.
 - [x] Write down limitations and what I would improve (`docs/limitations.md`)
 - [x] Save screenshots, tables and log excerpts to `docs/` (`docs/examples/` has text transcripts, `docs/evaluation.md` the tables)
 
-### [ ] Phase 10: Report and submission
+### [ ] Phase 10: Report and submission (code and documents done, the report text is mine to write)
 - [ ] Write the report (PDF), see the checklist in section 6
-- [ ] Final README check: Python version, libraries, exact run and test commands
-- [ ] Check that a fresh clone works: `pip install -r requirements.txt`, then `python main.py`, then `pytest`
-- [ ] Include the example outputs needed to reproduce the report findings
+- [x] Final README check: Python version, libraries, exact run and test commands
+- [x] Final audit of the program: no development wording in the terminal output, works from any folder, odd input (nan, empty values) refused with a message
+- [x] Check that a fresh clone works: `pip install -r requirements.txt`, then `python main.py`, then `pytest`
+- [x] Include the example outputs needed to reproduce the report findings (`docs/examples/`, `python scripts/make_examples.py`)
 - [ ] Submit the PDF and the code (zip or GitHub link)
 
 ---
@@ -412,14 +423,14 @@ Grading weights from the spec, which I use to decide where to spend time:
 
 Checked against the spec, section 7.
 
-- [ ] Modular application (several cohesive modules)
-- [ ] File I/O (source data, bookings, config, logs)
-- [ ] Custom error handling (invalid input, missing files, inconsistent data)
-- [ ] Regex used where it genuinely fits
-- [ ] One metaprogramming technique (decorator / registry / descriptor / dynamic discovery)
-- [ ] Intuitive interface (CLI is fine)
-- [ ] Reproducible ranking (same input gives the same output)
-- [ ] Tests for normal, invalid, missing-data and boundary cases
+- [x] Modular application (several cohesive modules)
+- [x] File I/O (source data, bookings, config, logs)
+- [x] Custom error handling (invalid input, missing files, inconsistent data)
+- [x] Regex used where it genuinely fits
+- [x] One metaprogramming technique (decorator / registry / descriptor / dynamic discovery)
+- [x] Intuitive interface (CLI is fine)
+- [x] Reproducible ranking (same input gives the same output)
+- [x] Tests for normal, invalid, missing-data and boundary cases
 
 ---
 

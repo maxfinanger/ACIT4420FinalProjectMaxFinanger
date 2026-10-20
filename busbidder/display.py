@@ -34,7 +34,7 @@ def duration_text(minutes: int) -> str:
 def print_ranking(ranked: list[RankedOffer], weights: dict, top: int) -> None:
     names = list(weights)
     print(f"\nRANKING ({len(ranked)} offers, best first). Scores are 0-100, higher is better; "
-          "price, duration and\nemissions are scored relative to these offers, see docs/scoring.md.")
+          "price, duration and\nemissions are scored relative to these offers.")
     head = (f"{'#':>3}  {'Offer':<8} {'Company':<15} {'Departure':<12} {'EUR':>6} {'Dur':>6} "
             f"{'Tr':>2} {'Fare':<8}")
     head += " |" + "".join(f" {n[:6]:>6}" for n in names) + " | TOTAL"

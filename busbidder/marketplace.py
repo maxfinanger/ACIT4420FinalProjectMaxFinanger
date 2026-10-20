@@ -18,7 +18,7 @@ class Marketplace:
         self.destinations = destinations
         self.offers = offers
         self.profiles = profiles          # profile name -> criterion weights
-        self.bookings = bookings          # saves bookings and keeps seat counts (Phase 7)
+        self.bookings = bookings          # saves bookings and keeps seat counts
 
     def filter(self, request: TravelRequest) -> FilterResult:
         """Hard constraints only (no ranking). Also checks that the request makes sense."""

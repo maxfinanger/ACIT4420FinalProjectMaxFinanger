@@ -20,6 +20,7 @@ from typing import Callable
 
 from .exceptions import (BookingError, DataFileError, DuplicateBookingError, SoldOutError,
                          ValidationError)
+from .paths import place_output
 from .loader import parse_date, parse_time
 from .models import Booking, FareConditions, Offer, RankedOffer
 from .validation import OFFER_ID_PATTERN, clean_traveller_name, is_valid_booking_ref
@@ -128,7 +129,7 @@ class BookingService:
     def __init__(self, store_path: str = "data/bookings.json",
                  rng: random.Random | None = None,
                  clock: Callable[[], datetime] | None = None):
-        self.store_path = Path(store_path)
+        self.store_path = place_output(store_path)
         self._rng = rng if rng is not None else random.SystemRandom()
         self._clock = clock if clock is not None else (lambda: datetime.now().replace(microsecond=0))
 

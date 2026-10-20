@@ -2,8 +2,10 @@
 import logging
 from pathlib import Path
 
+from .paths import PROJECT_ROOT
 
-def setup_logging(log_dir: str = "logs") -> logging.Logger:
+
+def setup_logging(log_dir: str = str(PROJECT_ROOT / "logs")) -> logging.Logger:
     Path(log_dir).mkdir(exist_ok=True)
     logger = logging.getLogger("busbidder")
     if not logger.handlers:  # avoid duplicate handlers on re-import

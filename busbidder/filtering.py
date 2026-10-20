@@ -231,7 +231,7 @@ def hard_constraint_lines(request: TravelRequest,
 
 
 def soft_preference_lines(request: TravelRequest, weights: dict | None = None) -> list[str]:
-    """What only affects the SCORE (ranking, Phase 5): never removes an offer."""
+    """What only affects the SCORE (ranking): never removes an offer."""
     lines = []
     names = [n for n in registered_names() if weights is None or n in weights]
     for name in names:

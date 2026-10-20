@@ -3,6 +3,7 @@ Companies    : 5
 Destinations : 15
 Profiles     : budget_traveller, business_traveller, flexible_tourist, environment_focused
 Offers       : 1497 loaded, 0 rejected (data/offers.csv)
+Bookings     : 0 saved (data/bookings.json)
 
 Request: Madrid to Malaga, 2026-07-12 to 2026-07-14, profile flexible_tourist
 
@@ -33,7 +34,7 @@ Filtering 1497 offers (each removed offer is counted once, under the first rule 
 Remaining: 47 offers
 
 RANKING (47 offers, best first). Scores are 0-100, higher is better; price, duration and
-emissions are scored relative to these offers, see docs/scoring.md.
+emissions are scored relative to these offers.
   #  Offer    Company         Departure       EUR    Dur Tr Fare     |  price durati depart flexib | TOTAL
   1  OF-0730  CostaLink       13 Jul 10:15  41.50   7h50  0 Flex     |   42.9   47.1   95.8  100.0 |  77.4
   2  OF-0725  CostaLink       13 Jul 07:45  41.50   7h30  0 Flex     |   42.9   58.8   62.5  100.0 |  75.8
@@ -63,5 +64,3 @@ Drawbacks:
   - weakest point is price: EUR 41.50, EUR 10.00 above the cheapest (EUR 31.50) (score 43 out of 100)
 Compared with the runner-up OF-0725 (75.8): ahead on departure (+3.3 points); behind on duration (-1.8 points).
 This is the highest-ranked offer only under your hard requirements, the weights of the 'flexible_tourist' profile (price 25%, duration 15%, departure 10%, flexibility 50%) and the scoring assumptions (price and duration are scored relative to the 47 acceptable offers). Other weights can give another result, so it is a recommendation under those assumptions, not a proof that nothing is better.
-
-(Done. Next: Phase 7, booking. See README.)

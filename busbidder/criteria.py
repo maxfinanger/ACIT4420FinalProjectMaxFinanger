@@ -1,4 +1,4 @@
-"""Scoring criteria, collected in a registry by a decorator (Phase 1 decision D5).
+"""Scoring criteria, collected in a registry by a decorator (decision D5).
 
 Adding a new criterion = write one function and decorate it. The ranker and the
 weight validation find it by name, so neither has to be edited.

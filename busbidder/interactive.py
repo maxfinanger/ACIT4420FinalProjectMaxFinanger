@@ -1,4 +1,4 @@
-"""Interactive menu (Phase 8): the same features as the command-line options, step by step.
+"""Interactive menu: the same features as the command-line options, step by step.
 
     python main.py --interactive
 

@@ -1,4 +1,4 @@
-"""Building blocks for the Phase 9 experiments (scripts/evaluate.py writes docs/evaluation.md).
+"""Building blocks for the experiments (scripts/evaluate.py writes docs/evaluation.md).
 
 Everything here is deterministic: the random experiments take a `random.Random` made from a fixed
 seed. The functions are small and pure so that they can be tested on hand-made data.

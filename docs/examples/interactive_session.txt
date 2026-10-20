@@ -74,7 +74,7 @@ Filtering 1497 offers (each removed offer is counted once, under the first rule 
 Remaining: 47 offers
 
 RANKING (47 offers, best first). Scores are 0-100, higher is better; price, duration and
-emissions are scored relative to these offers, see docs/scoring.md.
+emissions are scored relative to these offers.
   #  Offer    Company         Departure       EUR    Dur Tr Fare     |  price durati depart flexib | TOTAL
   1  OF-1025  SolRuta         14 Jul 07:00  31.50   8h35  0 Standard |  100.0   20.6   58.3   60.0 |  75.9
   2  OF-1035  CostaLink       14 Jul 10:15  35.50   7h20  0 Standard |   77.1   64.7   87.5   60.0 |  72.9
@@ -149,7 +149,7 @@ Filtering 1497 offers (each removed offer is counted once, under the first rule 
 Remaining: 47 offers
 
 RANKING (47 offers, best first). Scores are 0-100, higher is better; price, duration and
-emissions are scored relative to these offers, see docs/scoring.md.
+emissions are scored relative to these offers.
   #  Offer    Company         Departure       EUR    Dur Tr Fare     |  price durati depart flexib | TOTAL
   1  OF-1032  Camino Express  14 Jul 08:30  40.00   6h35  0 Standard |   51.4   91.2   83.3   60.0 |  78.2
   2  OF-0728  Camino Express  13 Jul 08:30  42.00   6h40  0 Standard |   40.0   88.2   83.3   60.0 |  75.3

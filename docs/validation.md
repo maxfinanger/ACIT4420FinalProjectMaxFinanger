@@ -1,4 +1,4 @@
-# Validation rules (Phase 3)
+# Validation rules
 
 How the loader decides whether an offer record is acceptable. Code:
 `busbidder/loader.py` (conversion, file errors, duplicates) and

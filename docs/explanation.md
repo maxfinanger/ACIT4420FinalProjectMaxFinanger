@@ -1,4 +1,4 @@
-# The explanation of the recommendation (Phase 6)
+# The explanation of the recommendation
 
 Code: `busbidder/explain.py`. Shown by `python main.py --destination ...` under **RECOMMENDATION**, and
 for every profile in `docs/profile_comparison.md`. Decision: D17.

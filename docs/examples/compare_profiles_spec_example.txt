@@ -3,6 +3,7 @@ Companies    : 5
 Destinations : 15
 Profiles     : budget_traveller, business_traveller, flexible_tourist, environment_focused
 Offers       : 1497 loaded, 0 rejected (data/offers.csv)
+Bookings     : 0 saved (data/bookings.json)
 
 Request: Madrid to Malaga, 2026-07-12 to 2026-07-14, preferred departure 09:00
 
@@ -38,5 +39,3 @@ OF-0725 CostaLink                   20             9             1            18
 OF-1030 VerdeBus                    19             8            25             1
 
 4 different winners from 4 company/companies. The offers are the same, so only the weights make the difference.
-
-(Done. Next: Phase 7, booking. See README.)

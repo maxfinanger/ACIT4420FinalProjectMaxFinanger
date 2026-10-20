@@ -3,6 +3,7 @@ Companies    : 5
 Destinations : 15
 Profiles     : budget_traveller, business_traveller, flexible_tourist, environment_focused
 Offers       : 1497 loaded, 0 rejected (data/offers.csv)
+Bookings     : 0 saved (data/bookings.json)
 
 Request: Madrid to Malaga, 2026-07-12 to 2026-07-14, profile environment_focused
 
@@ -35,7 +36,7 @@ Filtering 1497 offers (each removed offer is counted once, under the first rule 
 Remaining: 47 offers
 
 RANKING (47 offers, best first). Scores are 0-100, higher is better; price, duration and
-emissions are scored relative to these offers, see docs/scoring.md.
+emissions are scored relative to these offers.
   #  Offer    Company         Departure       EUR    Dur Tr Fare     |  price durati depart flexib emissi transf | TOTAL
   1  OF-1030  VerdeBus        14 Jul 08:00  39.50   7h15  0 Standard |   54.3   67.6   83.3   60.0  100.0  100.0 |  82.8
   2  OF-0426  VerdeBus        12 Jul 08:00  40.00   7h30  0 Standard |   51.4   58.8   83.3   60.0   94.0  100.0 |  78.7
@@ -67,5 +68,3 @@ Drawbacks:
   - weakest point is price: EUR 39.50, EUR 8.00 above the cheapest (EUR 31.50) (score 54 out of 100)
 Compared with the runner-up OF-0426 (78.7): ahead on emissions (+2.7 points), duration (+0.9 points).
 This is the highest-ranked offer only under your hard requirements, the weights of the 'environment_focused' profile (price 20%, duration 10%, departure 5%, flexibility 10%, emissions 45%, transfers 10%) and the scoring assumptions (price and duration are scored relative to the 47 acceptable offers). Other weights can give another result, so it is a recommendation under those assumptions, not a proof that nothing is better.
-
-(Done. Next: Phase 7, booking. See README.)

@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Iterable
 
 from .exceptions import DataFileError, ValidationError
+from .paths import find_input
 from .models import Company, Destination, FareConditions, Offer
 from .scoring_config import ScoringConfig
 from .validation import (DATE_PATTERN, OFFER_ID_PATTERN, REQUIRED_FIELDS, TIME_PATTERN,
@@ -60,7 +61,7 @@ def _fail(message: str) -> None:
 
 
 def _read_csv(path: str, required_columns: Iterable[str]) -> list[dict]:
-    p = Path(path)
+    p = find_input(path)
     if not p.exists():
         _fail(f"File not found: {path}")
     try:
@@ -99,7 +100,7 @@ def load_destinations(path: str = "data/destinations.csv") -> list[Destination]:
 
 
 def load_profiles(path: str = "config/profiles.json") -> dict:
-    p = Path(path)
+    p = find_input(path)
     if not p.exists():
         _fail(f"File not found: {path}")
     try:
@@ -112,7 +113,7 @@ def load_profiles(path: str = "config/profiles.json") -> dict:
 
 
 def load_scoring_config(path: str = "config/scoring.json") -> ScoringConfig:
-    p = Path(path)
+    p = find_input(path)
     if not p.exists():
         _fail(f"File not found: {path}")
     try:

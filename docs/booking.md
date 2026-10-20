@@ -1,4 +1,4 @@
-# Booking (Phase 7)
+# Booking
 
 Code: `busbidder/booking.py` (`BookingService`, `select_from_ranking`, the texts),
 `busbidder/validation.py` (`clean_traveller_name`), `busbidder/marketplace.py` (`Marketplace.book`),
@@ -121,7 +121,7 @@ Exit codes: `0` ok, `1` a data file is missing or unreadable, `2` invalid reques
 - Only a name is stored. There is no account, so "the same traveller" means "the same name".
 - Seat counts per fare type are independent (D12), which a real bus would not do.
 - The booking date/time (`booked_at`) is the local clock of the computer.
-- Selection is done with command-line options. The interactive menu comes in Phase 8.
+- Selection is done with command-line options. The interactive menu does the same step by step (`docs/interface.md`).
 
 ## Evidence
 

@@ -3,6 +3,7 @@ Companies    : 5
 Destinations : 15
 Profiles     : budget_traveller, business_traveller, flexible_tourist, environment_focused
 Offers       : 1497 loaded, 0 rejected (data/offers.csv)
+Bookings     : 0 saved (data/bookings.json)
 
 Request: Madrid to Malaga, 2026-07-12 to 2026-07-14, profile business_traveller
 
@@ -33,7 +34,7 @@ Filtering 1497 offers (each removed offer is counted once, under the first rule 
 Remaining: 47 offers
 
 RANKING (47 offers, best first). Scores are 0-100, higher is better; price, duration and
-emissions are scored relative to these offers, see docs/scoring.md.
+emissions are scored relative to these offers.
   #  Offer    Company         Departure       EUR    Dur Tr Fare     |  price durati depart flexib | TOTAL
   1  OF-1032  Camino Express  14 Jul 08:30  40.00   6h35  0 Standard |   51.4   91.2   91.7   60.0 |  80.7
   2  OF-0728  Camino Express  13 Jul 08:30  42.00   6h40  0 Standard |   40.0   88.2   91.7   60.0 |  77.8
@@ -63,5 +64,3 @@ Drawbacks:
   - weakest point is price: EUR 40.00, EUR 8.50 above the cheapest (EUR 31.50) (score 51 out of 100)
 Compared with the runner-up OF-0728 (77.8): ahead on price (+1.7 points), duration (+1.2 points).
 This is the highest-ranked offer only under your hard requirements, the weights of the 'business_traveller' profile (price 15%, duration 40%, departure 30%, flexibility 15%) and the scoring assumptions (price and duration are scored relative to the 47 acceptable offers). Other weights can give another result, so it is a recommendation under those assumptions, not a proof that nothing is better.
-
-(Done. Next: Phase 7, booking. See README.)

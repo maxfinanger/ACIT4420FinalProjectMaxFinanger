@@ -1,4 +1,4 @@
-# The scoring model (Phase 5)
+# The scoring model
 
 Code: `busbidder/criteria.py` (the criteria), `busbidder/ranking.py` (weights, ranking, ties,
 influence), `busbidder/scoring_config.py` and `config/scoring.json` (parameters).

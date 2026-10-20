@@ -1,14 +1,8 @@
-"""Command-line interface. Starts simple; grows with each phase.
+"""Command-line interface for BusBidder Spain.
 
-Phase 3: load and validate the data.
-Phase 4: describe a traveller request and show which offers survive the hard
-constraints (use --destination ...).
-Phase 5: rank the survivors with the weighted scoring model and show the score of
-every criterion.
-Phase 6: explain the top offer (advantages, drawbacks, comparison, caveat) and
-compare traveller profiles (--compare-profiles).
-Phase 7: book an offer from the ranking (--book 1 --name "Ana Perez"). The interactive
-menu comes in Phase 8.
+Loads the data, filters offers with the hard requirements, ranks them with the weighted
+scoring model, explains the result, compares profiles, books a seat, or runs the guided menu
+(--interactive).
 
 Exit codes: 0 ok, 1 a data file is missing or unreadable, 2 invalid request or selection,
 3 the booking was refused (sold out, duplicate).
@@ -18,6 +12,7 @@ import random
 import argparse
 from datetime import date, time
 
+from . import __version__
 from .booking import (BookingService, format_booking_list, format_confirmation,
                       select_from_ranking)
 from .exceptions import BookingError, BusBidderError, DataFileError, ValidationError
@@ -49,10 +44,21 @@ def _time_arg(text: str) -> time:
         raise argparse.ArgumentTypeError(err.message) from None
 
 
+def _finite_number(text: str) -> float:
+    try:
+        value = float(text)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"'{text}' is not a number") from None
+    if value != value or value in (float("inf"), float("-inf")):
+        raise argparse.ArgumentTypeError(f"'{text}' is not a finite number")
+    return value
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="main.py", description="BusBidder Spain")
     p.add_argument("--offers", default="data/offers.csv",
                    help="offers CSV file (default: data/offers.csv)")
+    p.add_argument("--version", action="version", version=f"BusBidder Spain {__version__}")
     p.add_argument("-i", "--interactive", action="store_true",
                    help="guided menu: search, rank, compare profiles and book step by step")
     g = p.add_argument_group(
@@ -62,9 +68,9 @@ def build_parser() -> argparse.ArgumentParser:
                    help="earliest departure date")
     g.add_argument("--to", dest="date_to", type=_date_arg, metavar="YYYY-MM-DD",
                    help="latest departure date")
-    g.add_argument("--budget", type=float, help="maximum price in EUR")
+    g.add_argument("--budget", type=_finite_number, help="maximum price in EUR")
     g.add_argument("--max-transfers", type=int, help="maximum number of transfers")
-    g.add_argument("--max-hours", type=float, help="maximum journey time in hours")
+    g.add_argument("--max-hours", type=_finite_number, help="maximum journey time in hours")
     g.add_argument("--min-luggage", type=int, default=0, help="minimum luggage allowance in kg")
     g.add_argument("--changeable", action="store_true", help="ticket must be changeable")
     g.add_argument("--preferred-departure", type=_time_arg, default=time(9, 0),
@@ -91,17 +97,17 @@ def build_parser() -> argparse.ArgumentParser:
 def run(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    if args.destination and None in (args.date_from, args.date_to, args.budget):
+    if args.destination is not None and None in (args.date_from, args.date_to, args.budget):
         parser.error("--destination also needs --from, --to and --budget")
-    if args.interactive and (args.destination or args.book or args.compare_profiles
-                             or args.show_bookings):
+    if args.interactive and (args.destination is not None or args.book is not None
+                             or args.compare_profiles or args.show_bookings):
         parser.error("--interactive asks for everything itself, so it cannot be combined with "
                      "--destination, --book, --compare-profiles or --show-bookings")
-    if args.book and not args.destination:
+    if args.book is not None and args.destination is None:
         parser.error("--book needs a request (--destination, --from, --to, --budget) to choose from")
-    if args.book and not args.name:
+    if args.book is not None and args.name is None:
         parser.error("--book also needs --name")
-    if args.book and args.compare_profiles:
+    if args.book is not None and args.compare_profiles:
         parser.error("--book cannot be combined with --compare-profiles")
     seed = os.environ.get("BUSBIDDER_SEED")
     if seed is not None and not seed.lstrip("-").isdigit():
@@ -134,13 +140,13 @@ def run(argv: list[str] | None = None) -> int:
         return run_interactive(Marketplace(companies, destinations, result.offers, profiles, service),
                                top=max(1, args.top))
 
-    if not args.destination:
+    if args.destination is None:
         print("\nTip: run with --interactive for a guided menu, or add --destination Malaga "
               "--from 2026-07-12 --to 2026-07-14 --budget 50 to filter and rank offers.")
         return 0
 
     try:
-        if args.weights:
+        if args.weights is not None:
             weights, profile = parse_weights(args.weights), "(custom)"
         elif args.profile in profiles:
             weights, profile = profiles[args.profile], args.profile
@@ -160,7 +166,7 @@ def run(argv: list[str] | None = None) -> int:
             ranked = []
         else:
             ranked = print_search(request, weights, marketplace, max(1, args.top))
-        chosen = select_from_ranking(ranked, args.book) if args.book else None
+        chosen = select_from_ranking(ranked, args.book) if args.book is not None else None
     except BookingError as err:
         print(f"\nBooking refused: {err}")
         return 3
@@ -181,5 +187,4 @@ def run(argv: list[str] | None = None) -> int:
         print("\n" + format_confirmation(booking, chosen.offer.seats_available,
                                          chosen.rank, chosen.total_score))
 
-    print("\n(Done. Next: Phase 9, evaluation. See README.)")
     return 0

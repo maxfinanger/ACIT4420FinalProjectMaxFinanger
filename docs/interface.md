@@ -1,4 +1,4 @@
-# The interactive menu (Phase 8)
+# The interactive menu
 
 Code: `busbidder/interactive.py` (menu, questions, parsers), `busbidder/display.py` (everything that is printed,
 shared with the command-line options), `busbidder/cli.py` (`--interactive`). Decision: D21.
