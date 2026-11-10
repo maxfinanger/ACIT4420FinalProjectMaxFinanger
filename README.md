@@ -209,26 +209,26 @@ offer completely before ranking. Soft preferences (for example preferred
 departure time) only affect the score. Which condition goes where is a design
 decision, which is justified in `docs/filtering.md` (D6).
 
-Design choices from Phase 1 (reasons and alternatives are in `docs/decisions.md`):
+Design choices (reasons and alternatives are in `docs/decisions.md`):
 
 - **Composition:** an `Offer` has a `FareConditions` object, and a `Booking` keeps a copy of it.
 - **Inheritance:** every hard constraint is a subclass of an abstract `Constraint`, so
   each one can both test an offer and explain why it was removed.
 - **Metaprogramming:** scoring criteria are registered with a `@register_criterion`
   decorator, so the weights in `profiles.json` can refer to criteria by name.
-- **Scoring (Phase 5):** every criterion gives 0-100 (higher is better). Price and duration are
+- **Scoring:** every criterion gives 0-100 (higher is better). Price and duration are
   scored relative to the other offers (with a minimum spread), the others against a fixed reference
   (D15, `docs/scoring.md`).
-- **Explanation (Phase 6):** built from the criterion scores (advantages, always a drawback, comparison
+- **Explanation:** built from the criterion scores (advantages, always a drawback, comparison
   with the runner-up, and a caveat that the result holds only under the chosen constraints, weights
   and scoring assumptions), see `docs/explanation.md` (D17).
-- **Booking (Phase 7):** `data/bookings.json` is the only record of seats sold (the offers file is never changed),
+- **Booking:** `data/bookings.json` is the only record of seats sold (the offers file is never changed),
   it is re-read before every booking and written atomically, and a booking keeps its own copy of the fare
   conditions. See `docs/booking.md` (D19, D20).
-- **Interface (Phase 8):** the menu uses the same functions and the same printing as the command-line options.
+- **Interface:** the menu uses the same functions and the same printing as the command-line options.
   Answers go through small tested parsers with helpful messages, and nothing is saved without a `y`
   (`docs/interface.md`, D21).
-- **Evaluation (Phase 9):** the experiments are a script that runs on the real code with fixed seeds and writes
+- **Evaluation:** the experiments are a script that runs on the real code with fixed seeds and writes
   `docs/evaluation.md`; the findings are computed from the numbers, and a test keeps the file up to date (D22).
 - **`Marketplace`** holds the data and runs the filter-then-rank pipeline, so the
   CLI only has to talk to one class.
@@ -239,7 +239,7 @@ Design choices from Phase 1 (reasons and alternatives are in `docs/decisions.md`
 
 Tests are in `tests/` and run with `python -m pytest -v`.
 
-Right now there are 617 tests. They cover:
+There are 617 tests. They cover:
 
 - **Delivery:** the terminal output has only task messages (no development wording), the program works from another folder, `nan`/`inf`/empty values are refused with a message, an ASCII-only console does not crash, and `docs/examples/` equals what the program prints today.
 - **Design:** fare conditions, the abstract constraint, the budget boundary, the
@@ -276,18 +276,24 @@ Right now there are 617 tests. They cover:
   correlation with ties, random weights), and that the committed `docs/evaluation.md` equals what the script generates, with
   a few numbers re-checked through the filter on its own.
 
-As each phase is finished I will add tests for normal input, invalid input,
-missing data and boundary cases, as the spec requires. Hand-calculated expected
-scores will be used for the ranking tests so I can check the maths independently
-of my own code.
+---
+
+## 5. Technical requirements and development plan
+
+The list of specifics given in the exam text.
+
+- [x] Modular application (several cohesive modules)
+- [x] File I/O (source data, bookings, config, logs)
+- [x] Custom error handling (invalid input, missing files, inconsistent data)
+- [x] Regex used where it genuinely fits
+- [x] One metaprogramming technique (decorator / registry / descriptor / dynamic discovery)
+- [x] Intuitive interface (CLI is fine)
+- [x] Reproducible ranking (same input gives the same output)
+- [x] Tests for normal, invalid, missing-data and boundary cases
 
 ---
 
-## 5. Roadmap
-
-This is my plan. I'm using it to work in small steps, to show progress in the
-git history, and to check along the way that the program fits the specification.
-I commit after every phase.
+The plan for the development of the code and the writing of the report, sectioned off into 10 manageable steps. 
 
 ### [x] Phase 0: Skeleton
 - [x] Folder structure and modules created
@@ -381,85 +387,38 @@ I commit after every phase.
 - [x] Write down limitations and what I would improve (`docs/limitations.md`)
 - [x] Save screenshots, tables and log excerpts to `docs/` (`docs/examples/` has text transcripts, `docs/evaluation.md` the tables)
 
-### [ ] Phase 10: Report and submission 
+### [x] Phase 10: Report and submission 
 - [X] Write the report (PDF), see the checklist in section 6
 - [x] Final README check: Python version, libraries, exact run and test commands
 - [x] Final audit of the program: no development wording in the terminal output, works from any folder, odd input (nan, empty values) refused with a message
 - [x] Check that a fresh clone works: `pip install -r requirements.txt`, then `python main.py`, then `pytest`
 - [x] Include the example outputs needed to reproduce the report findings (`docs/examples/`, `python scripts/make_examples.py`)
-- [ ] Submit the PDF and the code (zip or GitHub link)
 
 ---
 
-## 6. Report plan
+## 6. Use of generative AI
 
-The report is the main assessed part, so I'm collecting material for it as I go
-instead of writing everything at the end. The structure is already in
-`report/BusBidder_Report.docx`, with Word comments saying what each section needs. Source code stays out of the report
-as far as possible.
+I used Claude (Anthropic) as an assistant through the project. The full declaration is in section 9 of the report; this is the short version.
 
-| Required content | Where it comes from |
-|---|---|
-| Flowchart / architecture diagram | Phase 1 |
-| Dataset description and validation | Phases 2-3 (`docs/dataset.md`, `docs/validation.md`) |
-| At least 3 traveller-profile comparisons | Phase 6 (`docs/profile_comparison.md`) |
-| Limitations and possible unfair outcomes | Phase 9 (`docs/limitations.md`, `docs/evaluation.md`) |
-| Generative-AI declaration (what for, how it was checked, what I changed) | notes kept during the project, see section 8 |
+**What it was used for**
 
-Grading weights from the spec, which I use to decide where to spend time:
-
-| Component | Weight |
-|---|---|
-| Problem interpretation and requirements | 10% |
-| Software design and architecture justifications | 15% |
-| Implementation explanation | 15% |
-| Testing and experimental evidence | 15% |
-| **Evaluation, limitations, critical reflection** | **20%** |
-| Implementation traceability and reproducibility | 10% |
-| Report organisation and technical communication | 15% |
-
----
-
-## 7. Technical requirements tracker
-
-Checked against the spec, section 7.
-
-- [x] Modular application (several cohesive modules)
-- [x] File I/O (source data, bookings, config, logs)
-- [x] Custom error handling (invalid input, missing files, inconsistent data)
-- [x] Regex used where it genuinely fits
-- [x] One metaprogramming technique (decorator / registry / descriptor / dynamic discovery)
-- [x] Intuitive interface (CLI is fine)
-- [x] Reproducible ranking (same input gives the same output)
-- [x] Tests for normal, invalid, missing-data and boundary cases
-
----
-
-## 8. Use of generative AI
-
-I use Claude (Anthropic) as an assistant during the project. This is how i have used the model, and a explanation of what is my work specifically and where the tool is used along side my own efforts.
-
-**What I use it for**
-
-- Planning and structure: breaking the specification into phases, the structure of this README, and the outline of the report with guidance comments.
-- Code: first drafts of the project skeleton, the class design, the data generation
-  script and the tests.
-- Illustrations: the architecture diagram and the class diagram (Graphviz sources are in `docs/diagrams/`).
+- Planning and structure: breaking the specification into phases, the structure of this README and the outline of the report.
+- Code: drafts of the application modules, the tests, the data generator and the evaluation scripts, written in steps while I reviewed and edited each step.
+- Illustrations: the architecture diagram and the class diagrams (Graphviz sources are in `docs/diagrams/`).
+- Documentation and report: drafts of the files in `docs/` and of the report text, and feedback on the structure and the writing of the report.
 - General questions and discussing design alternatives, for example which metaprogramming technique to use.
 
-**How I check it**
+**How it was checked**
 
-I run the program and the tests, read through the generated code and documents, check the diagrams against the code, and compare everything with the specification. The data generator is checked with tests, and the generated dataset is checked against the summary statistics in `docs/dataset.md`.
+I ran the program and the tests, read through the generated code and documents, checked the diagrams against the code, and compared everything with the specification. Documents with numbers (`docs/profile_comparison.md`, `docs/evaluation.md`, `docs/examples/`) are generated by scripts, and tests fail if they differ from the committed files.
 
 **What is mine**
 
-I have read and agreed with the design decisions in `docs/decisions.md`, and I edit
-the README and the other documents myself. I write the report text myself. I stay
-responsible for all design decisions and for everything in the submission.
+I edited, reviewed and agreed with the design decisions in `docs/decisions.md`, I have read, run and edited the program and the tests, and I wrote and edited the README and the report. I am responsible for all design decisions and for everything in the submission.
 
 ---
 
-## 9. Dependencies
+## 7. Dependencies
 
 - Python 3.10 or newer
 - No third-party runtime dependencies
